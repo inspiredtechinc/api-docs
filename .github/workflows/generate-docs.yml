@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - develop
-      - master
+      - main
   pull_request:
     branches:
       - develop
-      - master
+      - main
       - 'feature/**'
 
 jobs:
@@ -26,11 +26,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint OpenAPI specs
+      - name: Lint changed OpenAPI specs
         run: |
-          for f in */*/openapi.yaml; do
-            npx @redocly/cli lint "$f"
-          done
+          set -e
+          # Get changed openapi.yaml files in the commit or PR
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+            HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          else
+            BASE_SHA=${{ github.event.before }}
+            HEAD_SHA=${{ github.sha }}
+          fi
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep 'openapi.yaml$' || true)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No OpenAPI specs changed."
+          else
+            for f in $CHANGED_FILES; do
+              npx @redocly/cli lint "$f"
+            done
+          fi
 
       - name: Generate documentation
         run: npm run generate-docs
@@ -63,7 +77,7 @@ jobs:
             });
 
       - name: Deploy to GitHub Pages (Main Site)
-        if: github.event_name != 'pull_request' && (github.ref_name == 'develop' || github.ref_name == 'master')
+        if: github.event_name != 'pull_request' && (github.ref_name == 'develop' || github.ref_name == 'main')
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
