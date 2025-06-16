@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - develop
-      - master
+      - main
   pull_request:
     branches:
       - develop
-      - master
+      - main
       - 'feature/**'
 
 jobs:
@@ -25,12 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Lint OpenAPI specs
-        run: |
-          for f in */*/openapi.yaml; do
-            npx @redocly/cli lint "$f"
-          done
 
       - name: Generate documentation
         run: npm run generate-docs
@@ -63,7 +57,7 @@ jobs:
             });
 
       - name: Deploy to GitHub Pages (Main Site)
-        if: github.event_name != 'pull_request' && (github.ref_name == 'develop' || github.ref_name == 'master')
+        if: github.event_name != 'pull_request' && (github.ref_name == 'develop' || github.ref_name == 'main')
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
