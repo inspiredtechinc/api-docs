@@ -1,0 +1,13 @@
+{
+  "name": "openapi-docs-site",
+  "version": "1.0.0",
+  "description": "Multi-service OpenAPI documentation site with card layout for each module and environment.",
+  "scripts": {
+    "generate-docs": "bash ./generate-docs.sh"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@redocly/cli": "^1.0.0",
+    "swagger-cli": "^4.0.4"
+  }
+}

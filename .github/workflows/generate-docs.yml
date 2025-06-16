@@ -1,0 +1,70 @@
+name: Generate OpenAPI Documentation
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+      - master
+      - 'feature/**'
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint OpenAPI specs
+        run: |
+          for f in */*/openapi.yaml; do
+            npx @redocly/cli lint "$f"
+          done
+
+      - name: Generate documentation
+        run: npm run generate-docs
+
+      - name: Add .nojekyll
+        run: touch .nojekyll
+
+      - name: Deploy to GitHub Pages (PR Preview)
+        if: github.event_name == 'pull_request'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./openapi-docs
+          destination_dir: preview/pr-${{ github.event.pull_request.number }}
+
+      - name: Comment PR with Preview Link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const url = `https://${owner}.github.io/${repo}/preview/pr-${prNumber}/`;
+            github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner,
+              repo,
+              body: `🚀 **Preview your API docs here:**\n\n👉 [PR Preview](${url})`
+            });
+
+      - name: Deploy to GitHub Pages (Main Site)
+        if: github.event_name != 'pull_request' && (github.ref_name == 'develop' || github.ref_name == 'master')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./openapi-docs

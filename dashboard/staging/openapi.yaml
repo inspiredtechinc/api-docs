@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: Dashboard Service API
+  description: API documentation for the Dashboard service.
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/staging
+paths:
+  /example:
+    get:
+      summary: Example endpoint
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "This is an example response."
