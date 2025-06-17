@@ -1,0 +1,50 @@
+parameters:
+  page:
+    name: page
+    in: query
+    description: Page number
+    required: false
+    type: integer
+    format: int32
+    minimum: 1
+    maxLength: 3
+    default: 1
+    maximum: 100
+  limit:
+    name: limit
+    in: query
+    description: Number of items per page
+    required: false
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 100
+    default: 10
+  startAfter:
+    name: startAfter
+    in: query
+    description: Start after this item
+    required: false
+    type: string
+    maxLength: 32
+  sortField:
+    name: sortField
+    in: query
+    description: The fields to sort by (comma-separated list)
+    required: false
+    type: array
+    collectionFormat: multi
+    items:
+      type: string
+      maxLength: 32
+    maxItems: 100
+  sortOrder:
+    name: sortOrder
+    in: query
+    description: The sort order (ASC or DESC)
+    required: false
+    type: string
+    maxLength: 32
+    enum:
+      - ASC
+      - DESC

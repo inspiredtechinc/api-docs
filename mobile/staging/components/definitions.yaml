@@ -1,0 +1,2264 @@
+definitions:
+  DefaultResponse:
+    type: object
+    description: Standard error response model for failed requests.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: false
+      error:
+        type: string
+        description: Error message describing the failure.
+        example: "Invalid booking ID."
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: "Unable to process your request."
+    required:
+      - success
+      - error
+  DashboardResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: ok
+      data:
+        type: object
+        description: Optional data payload for successful responses
+    required:
+      - status
+  DashboardError:
+    type: object
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 400
+          message:
+            type: string
+            example: Invalid request
+    required:
+      - status
+      - error
+  Error404Response:
+    type: object
+    properties:
+      code:
+        type: integer
+        example: 404
+      message:
+        type: string
+        example: Not found
+    required:
+      - code
+      - message
+  OTPRequest:
+    type: object
+    properties:
+      contact:
+        type: string
+        maxLength: 10
+        description: The contact number or email or any other supported contact method
+  OTPRequiredResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: false
+      error:
+        type: string
+        example: "User registration contact not verified. OTP required."
+      toast:
+        type: string
+        example: "Please verify your registration contact before proceeding."
+      data:
+        type: object
+        properties:
+          otp_required:
+            type: boolean
+            example: true
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      bio:
+        type: string
+      avatar:
+        type: string
+        format: uri
+      phone:
+        type: string
+      birthday:
+        type: string
+        format: date-time
+      city:
+        type: string
+      country:
+        type: string
+        maxItems: 10
+      interests:
+        type: array
+        items:
+          type: string
+        maxItems: 10
+      languages:
+        type: array
+        items:
+          type: string
+        maxItems: 10
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      gender:
+        $ref: '#/definitions/Gender'
+  UserSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  Gender:
+    type: string
+    enum:
+      - Male
+      - Female
+      - Non-binary
+      - Transgender
+      - Genderqueer
+      - Genderfluid
+      - Agender
+      - Two-spirit
+      - Bigender
+      - Other
+      - Prefer not to say
+  Location:
+    type: object
+    properties:
+      latitude:
+        type: number
+        format: double
+      longitude:
+        type: number
+        format: double
+  Address:
+    type: object
+    properties:
+      street:
+        type: string
+      city:
+        type: string
+      country:
+        type: string
+      postal_code:
+        type: string
+      province:
+        type: string
+      unit_number:
+        type: string
+      flag:
+        type: string
+    required:
+      - street
+      - city
+      - country
+      - postal_code
+  PendingVerification:
+    type: object
+    properties:
+      id:
+        type: string
+        example: "1"
+      name:
+        type: string
+        example: "Alice"
+      lastName:
+        type: string
+        example: "Johnson"
+      email:
+        type: string
+        format: email
+        example: "alice.johnson@example.com"
+      idType:
+        type: string
+        example: "Driver's License"
+      idDocumentUrl:
+        type: string
+        format: uri
+        example: "https://example.com/id-docs/alice.jpg"
+      selfieUrl:
+        type: string
+        format: uri
+        example: "https://example.com/selfies/alice.jpg"
+      phone:
+        type: string
+        example: "+1-555-123-4567"
+      socialMedia:
+        type: string
+        format: uri
+        example: "https://instagram.com/alicej"
+      status:
+        type: string
+        enum: [pending, approved, rejected]
+        example: "pending"
+      submittedAt:
+        type: string
+        format: date-time
+        example: "2024-12-01T10:30:00Z"
+      role:
+        type: string
+        example: "host"
+  Host:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      avatar:
+        type: string
+        format: uri
+      gender:
+       type: string
+      rating:
+        type: number
+        format: double
+  ListingRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      price:
+        type: number
+        format: double
+      thumbnail:
+        type: string
+        format: uri
+      max_guests:
+        type: integer
+        format: int32
+      instant_book:
+        type: boolean
+      photos:
+        type: array
+        items:
+          type: string
+          format: uri
+          minimum: 3
+        maxItems: 10
+      host:
+        $ref: '#/definitions/Host'
+      amenities:
+        type: array
+        items:
+          type: string
+        maxLength: 20
+      house_rules:
+        type: array
+        items:
+          type: string
+        maxLength: 5
+      cancellation_policy:
+        type: string
+        enum:
+          - "No refunds"
+          - "50% - 50% refund"
+          - "100% - Full Refund"
+      address:
+        $ref: '#/definitions/Address'
+      baggage_drop:
+        type: boolean
+        description: Baggage drop allowed by host so guests can drop off their bags first while they explore the city.
+        default: false
+      category:
+        type: object
+        properties:
+          name:
+            type: string
+          code:
+            type: string
+          description:
+            type: string
+    required:
+      - title
+      - description
+      - price
+      - thumbnail
+      - max_guests
+      - instant_book
+      - photos
+      - host
+      - amenities
+      - house_rules
+      - cancellation_policy
+      - address
+      - category
+  ListingSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      location:
+        $ref: '#/definitions/Location'
+      price:
+        type: number
+        format: double
+      available:
+        type: boolean
+      thumbnail:
+        type: string
+        format: uri
+      distance:
+        type: number
+        format: double
+      created_at:
+        type: string
+        format: date-time
+      max_guests:
+        type: integer
+        format: int32
+      rating:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      active:
+        type: boolean
+      amenities:
+        type: array
+        items:
+          type: string
+      cancellation_policy:
+        type: string
+      category:
+        type: object
+        properties:
+          name:
+            type: string
+          code:
+            type: string
+          description:
+            type: string
+  ListingResponse:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+        maxLength: 64
+      description:
+        type: string
+      location:
+        $ref: '#/definitions/Location'
+      price:
+        type: number
+        format: double
+        minimum: 10.00
+      available:
+        type: boolean
+      thumbnail:
+        type: string
+        format: uri
+      distance:
+        type: number
+        format: double
+      created_at:
+        type: string
+        format: date-time
+      max_guests:
+        type: integer
+        format: int32
+      rating:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      active:
+        type: boolean
+      amenities:
+        type: array
+        items:
+          type: string
+      cancellation_policy:
+        type: string
+      category:
+        type: object
+      photos:
+        type: array
+        items:
+          type: string
+          format: uri
+      host:
+        type: object
+      house_rules:
+        type: array
+        items:
+          type: string
+      updated_at:
+        type: string
+        format: date-time
+  Booking:
+    type: object
+    properties:
+      id:
+        type: string
+        example: "bkg_001"
+      listing_id:
+        type: string
+        example: "lst_101"
+      user_id:
+        type: string
+        example: "usr_201"
+      check_in:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      check_out:
+        type: string
+        format: date-time
+        example: "2025-06-05T11:00:00Z"
+      amount:
+        type: number
+        format: float
+        example: 500
+      rating:
+        type: number
+        format: float
+        example: 4.5
+      days:
+        type: integer
+        example: 4
+      payment_id:
+        type: string
+        example: "pay_001"
+      status:
+        type: string
+        enum: [pending, accepted, rejected, cancelled, completed, awaiting_payment]
+        example: "pending"
+      guests:
+        type: integer
+        example: 2
+  BookingRequest:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      user_id:
+        type: string
+      check_in:
+        type: string
+        format: date-time
+      check_out:
+        type: string
+        format: date-time
+      guests:
+        type: integer
+        format: int32
+        maxLength: 3
+        minimum: 1
+    required:
+      - listing_id
+      - user_id
+      - check_in
+      - check_out
+      - guests
+  BookingResponse:
+    type: object
+    description: Response containing a single booking object.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        $ref: '#/definitions/Booking'
+        description: The booking object returned by the API.
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: "Booking created successfully."
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+
+  BookingsResponse:
+    type: object
+    description: Paginated response containing a list of bookings.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        type: array
+        description: List of booking objects.
+        items:
+          $ref: '#/definitions/Booking'
+        example:
+          - id: "bkg_001"
+            listing_id: "lst_101"
+            user_id: "usr_201"
+            check_in: "2025-06-01T14:00:00Z"
+            check_out: "2025-06-05T11:00:00Z"
+            amount: 500
+            rating: 4.5
+            days: 4
+            payment_id: "pay_001"
+            status: "pending"
+            guests: 2
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            description: Current page number
+            example: 1
+          limit:
+            type: integer
+            description: Number of items per page
+            example: 10
+          total:
+            type: integer
+            description: Total number of items
+            example: 25
+          pages:
+            type: integer
+            description: Total number of pages
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: "Bookings retrieved successfully."
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+      - meta
+
+  AcceptBookingRequest:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Friendly message to the guest
+    required:
+      - message
+  CancelBookingRequest:
+    type: object
+    properties:
+      reason:
+        type: string
+        enum:
+          - "Change of travel plans"
+          - "Guest asked to cancel"
+          - "Guest did not show up"
+          - "Guest did not have required payment"
+          - "Accidental booking"
+          - "Other"
+    required:
+      - reason
+  Review:
+    type: object
+    properties:
+      id:
+        type: string
+      author:
+        type: string
+        description: The user writing the review
+      target:
+        type: string
+        description: The user or listing being reviewed
+      type:
+        type: string
+        enum:
+          - user
+          - listing
+        description: Type of entity being reviewed
+      category:
+        type: string
+      overall_rating:
+        type: number
+      comment:
+        type: string
+      emoji_sentiment:
+        type: string
+      metrics:
+        type: object
+        additionalProperties: true
+      booking_id:
+        type: string
+      listing_id:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      status:
+        type: string
+      version:
+        type: integer
+      edit_history:
+        type: array
+        items:
+          $ref: '#/definitions/ReviewEdit'
+    required:
+      - id
+      - author
+      - target
+      - type
+      - category
+      - overall_rating
+      - metrics
+      - created_at
+      - updated_at
+      - status
+      - version
+      - edit_history
+  ReviewRequest:
+    type: object
+    required:
+      - author
+      - target
+      - type
+      - category
+      - overall_rating
+      - metrics
+    properties:
+      author:
+        type: string
+        description: The user writing the review
+      target:
+        type: string
+        description: The user or listing being reviewed
+      type:
+        type: string
+        enum:
+          - user
+          - listing
+        description: Type of entity being reviewed
+      category:
+        type: string
+        description: Review context/category (e.g., couchsurf, workspace)
+      overall_rating:
+        type: number
+        minimum: 1
+        maximum: 5
+      comment:
+        type: string
+        maxLength: 1000
+      emoji_sentiment:
+        type: string
+        enum:
+          - "👍"
+          - "👎"
+          - "👍👍"
+      metrics:
+        type: object
+        description: Category-specific metrics (flexible)
+        additionalProperties: true
+      booking_id:
+        type: string
+        description: Associated booking ID if applicable
+  ReviewEdit:
+    type: object
+    properties:
+      version:
+        type: integer
+      updated_at:
+        type: string
+        format: date-time
+      changes:
+        type: object
+        additionalProperties: true
+    required:
+      - version
+      - updated_at
+      - changes
+  ReportReviewRequest:
+    type: object
+    required:
+      - reason
+      - reported_by
+    properties:
+      reason:
+        type: string
+        enum:
+          - INAPPROPRIATE
+          - MISLEADING
+          - SPAM
+          - OFFENSIVE
+          - OTHER
+      details:
+        type: string
+        maxLength: 500
+        description: Additional details about the report
+      reported_by:
+        type: string
+        description: User ID of the person reporting the review
+  ReviewUpdateRequest:
+    type: object
+    properties:
+      comment:
+        type: string
+        maxLength: 1000
+      overall_rating:
+        type: number
+        minimum: 1
+        maximum: 5
+      emoji_sentiment:
+        type: string
+        enum:
+          - "👍"
+          - "👎"
+          - "👍👍"
+      metrics:
+        type: object
+        description: Category-specific metrics (flexible)
+        additionalProperties: true
+      # Only fields above are updatable. Author, target, and other identity fields are immutable.
+  PaymentRequest:
+    type: object
+    properties:
+      booking_id:
+        type: string
+      amount:
+        type: number
+        format: double
+      currency:
+        type: string
+        maxLength: 3
+      payment_method:
+        type: string
+        maxLength: 32
+      payment_status:
+        type: string
+        maxLength: 32
+      payment_date:
+        type: string
+        format: date-time
+  PaymentResponse:
+    type: object
+    description: Response containing a single payment object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/Payment'
+        description: The payment object returned by the API.
+      toast:
+        type: string
+        example: "Payment created successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  PaymentMethodRequest:
+    type: object
+    properties:
+      user_id:
+        type: string
+      payment_method:
+        type: string
+        maxLength: 32
+      payment_method_type:
+        type: string
+        maxLength: 32
+      payment_method_status:
+        type: string
+        maxLength: 32
+      payment_method_date:
+        type: string
+        format: date-time
+    required:
+      - user_id
+      - payment_method
+  PaymentMethodResponse:
+    type: object
+    description: Response containing a single payment method object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/PaymentMethod'
+        description: The payment method object returned by the API.
+      toast:
+        type: string
+        example: "Payment method added successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  PaymentMethodsResponse:
+    type: object
+    description: Paginated response containing a list of payment methods.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/PaymentMethod'
+        description: List of payment methods.
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: "Payment methods retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  MessageRequest:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      booking_id:
+        type: string
+      message:
+        type: string
+      type:
+        type: string
+        maxLength: 32
+    required:
+      - message
+  Message:
+    type: object
+    properties:
+      id:
+        type: string
+      listing_id:
+        type: string
+      booking_id:
+        type: string
+      message:
+        type: string
+      type:
+        type: string
+        maxLength: 32
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  MessageResponse:
+    type: object
+    description: Response containing a single message object.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        $ref: '#/definitions/Message'
+        description: The message object returned by the API.
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: "Message sent successfully."
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+
+  GetAllMessagesResponse:
+    type: object
+    description: Paginated response containing a list of messages.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        type: array
+        description: List of message objects.
+        items:
+          $ref: '#/definitions/Message'
+        example:
+          - id: "msg_001"
+            listing_id: "lst_101"
+            booking_id: "bkg_001"
+            message: "Hello!"
+            type: "guest"
+            created_at: "2025-06-01T14:00:00Z"
+            updated_at: "2025-06-01T14:00:00Z"
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            description: Current page number
+            example: 1
+          limit:
+            type: integer
+            description: Number of items per page
+            example: 10
+          total:
+            type: integer
+            description: Total number of items
+            example: 25
+          pages:
+            type: integer
+            description: Total number of pages
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: "Messages retrieved successfully."
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  SearchListingSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      price:
+        type: number
+        format: double
+      location:
+        $ref: '#/definitions/Location'
+      thumbnail:
+        type: string
+        format: uri
+      rating:
+        type: number
+        format: double
+      category:
+        type: object
+        properties:
+          name:
+            type: string
+          code:
+            type: string
+      available:
+        type: boolean
+      distance:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      short_description:
+        type: string
+    required:
+      - id
+      - title
+      - price
+      - location
+      - thumbnail
+      - available
+  SearchListingsResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/SearchListingSummary'
+      meta:
+        type: object
+        properties:
+          page:
+            type: integer
+          limit:
+            type: integer
+          total:
+            type: integer
+          pages:
+            type: integer
+        required:
+          - page
+          - limit
+          - total
+          - pages
+    required:
+      - success
+      - data
+      - meta
+  SearchListingsRequest:
+    type: object
+    properties:
+      location:
+        type: object
+        properties:
+          latitude:
+            type: number
+            format: double
+          longitude:
+            type: number
+            format: double
+          city:
+            type: string
+          country:
+            type: string
+      start_date:
+        type: string
+        format: date-time
+      end_date:
+        type: string
+        format: date-time
+      guests:
+        type: integer
+        format: int32
+      price_min:
+        type: number
+        format: double
+      price_max:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      category:
+        type: string
+      keywords:
+        type: string
+      gender:
+        type: string
+        description: Filter by host gender
+      page:
+        type: integer
+        format: int32
+      limit:
+        type: integer
+        format: int32
+  DocumentRequest:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - Listing
+          - Avatar
+          - Verification
+          - Report
+          - Messaging
+        description: The type of document request. Must be one of the specified values.
+      user_id:
+        type: string
+        description: The user's ID.
+      documents:
+        type: array
+        items:
+          type: object
+          properties:
+            content:
+              type: string
+              description: The content of the document.
+            name:
+              type: string
+              description: The name of the document.
+    required:
+      - type
+      - user_id
+      - documents
+  DocumentResponse:
+    type: object
+    description: Response containing a single document object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/Document'
+        description: The document object returned by the API.
+      toast:
+        type: string
+        example: "Document uploaded successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  DocumentsResponse:
+    type: object
+    description: Paginated response containing a list of documents.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of document objects.
+        items:
+          $ref: '#/definitions/Document'
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: "Documents retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  Document:
+    type: object
+    description: Represents a user-uploaded document.
+    properties:
+      id:
+        type: string
+        description: Unique document ID
+        example: "doc_12345"
+      user_id:
+        type: string
+        description: ID of the user who owns the document
+        example: "usr_201"
+      type:
+        type: string
+        description: Document type (see enum DocumentType)
+        example: "Listing"
+      name:
+        type: string
+        description: Name of the document
+        example: "passport.pdf"
+      url:
+        type: string
+        format: uri
+        description: Publicly accessible URL for the document
+        example: "https://cdn.example.com/docs/passport.pdf"
+      created_at:
+        type: string
+        format: date-time
+        description: Document creation timestamp
+        example: "2025-06-08T12:00:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        description: Last update timestamp
+        example: "2025-06-08T12:00:00Z"
+    required:
+      - id
+      - user_id
+      - type
+      - name
+      - url
+      - created_at
+      - updated_at
+  WishlistRequest:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      tag:
+        type: string
+        maxLength: 32
+      thumbnail:
+        type: string
+        format: uri
+    required:
+      - listing_id
+  WishlistResponse:
+    type: object
+    description: Response containing the user's wishlist after add/delete.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of wishlist items for the user
+        items:
+          $ref: '#/definitions/WishlistItem'
+      toast:
+        type: string
+        example: "Wishlist updated successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  WishlistListResponse:
+    type: object
+    description: Response containing all wishlist items for a user.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of wishlist items for the user
+        items:
+          $ref: '#/definitions/WishlistItem'
+      toast:
+        type: string
+        example: "Wishlist retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  WishlistTagDeleteResponse:
+    type: object
+    description: Response confirming tag deletion from wishlist.
+    properties:
+      success:
+        type: boolean
+        example: true
+      tag:
+        type: string
+        description: The tag that was deleted
+      toast:
+        type: string
+        example: "Tag deleted from wishlist."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - tag
+  ReviewCategory:
+    type: string
+    enum:
+      - couchsurf
+      - workspace
+      - storage
+      - rental
+      - service
+      - other
+    description: The context/category of the review (e.g., couchsurf, workspace, etc.)
+  ReviewResponseRequest:
+    type: object
+    required:
+      - comment
+    properties:
+      comment:
+        type: string
+        maxLength: 1000
+        description: The response text
+  # --- Admin Dashboard V2 Additions ---
+  UserAdminUpdateRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      status:
+        type: string
+        enum: [active, suspended, banned, pending]
+      role:
+        type: string
+        enum: [user, admin, moderator]
+      verified:
+        type: boolean
+    required:
+      - email
+  ListingAdminUpdateRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+        enum: [active, pending, rejected, removed]
+      price:
+        type: number
+        format: double
+      max_guests:
+        type: integer
+      instant_book:
+        type: boolean
+      admin_notes:
+        type: string
+    required:
+      - title
+      - status
+  BookingAdminUpdateRequest:
+    type: object
+    properties:
+      status:
+        type: string
+        enum: [pending, confirmed, cancelled, completed, disputed]
+      admin_notes:
+        type: string
+      refund_amount:
+        type: number
+        format: double
+    required:
+      - status
+  AnalyticsOverviewResponse:
+    type: object
+    properties:
+      total_users:
+        type: integer
+      total_listings:
+        type: integer
+      total_bookings:
+        type: integer
+      total_revenue:
+        type: number
+        format: double
+      active_users:
+        type: integer
+      new_signups:
+        type: integer
+      period:
+        type: string
+        description: Analytics period (e.g. 'last_30_days')
+  SettingsResponse:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+      updated_at:
+        type: string
+        format: date-time
+  SettingsUpdateRequest:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+  NotificationRequest:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      user_id:
+        type: string
+      type:
+        type: string
+        enum: [info, warning, alert, success]
+      data:
+        type: object
+  UserUpdateRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      status:
+        type: string
+        enum: [active, suspended, banned, pending]
+      role:
+        type: string
+        enum: [user, admin, moderator]
+      verified:
+        type: boolean
+    required:
+      - email
+  ListingUpdateRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+        enum: [active, pending, rejected, removed]
+      price:
+        type: number
+        format: double
+      max_guests:
+        type: integer
+      instant_book:
+        type: boolean
+      admin_notes:
+        type: string
+    required:
+      - title
+      - status
+  BookingUpdateRequest:
+    type: object
+    properties:
+      status:
+        type: string
+        enum: [pending, confirmed, cancelled, completed, disputed]
+      admin_notes:
+        type: string
+      refund_amount:
+        type: number
+        format: double
+    required:
+      - status
+  ReviewAdminUpdateRequest:
+    type: object
+    properties:
+      status:
+        type: string
+        enum: [approved, rejected, removed, pending]
+      admin_notes:
+        type: string
+      response:
+        type: string
+    required:
+      - status
+  ReviewAdminCreateRequest:
+    type: object
+    properties:
+      user_id:
+        type: string
+      listing_id:
+        type: string
+      rating:
+        type: number
+        format: float
+        minimum: 1
+        maximum: 5
+      comment:
+        type: string
+      status:
+        type: string
+        enum: [approved, rejected, pending]
+      admin_notes:
+        type: string
+    required:
+      - user_id
+      - listing_id
+      - rating
+      - comment
+  GetAllListingsResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ListingSummary'
+      meta:
+        type: object
+        properties:
+          page:
+            type: integer
+            description: Current page number
+          limit:
+            type: integer
+            description: Number of items per page
+          total:
+            type: integer
+            description: Total number of items
+          pages:
+            type: integer
+            description: Total number of pages
+        required:
+          - page
+          - limit
+          - total
+          - pages
+    required:
+      - success
+      - data
+      - meta
+  GetListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: '#/definitions/ListingResponse'
+    required:
+      - success
+      - data
+  AddressAutoCompleteResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/AddressSuggestion'
+      meta:
+        type: object
+        properties:
+          total:
+            type: integer
+            description: Total number of suggestions
+        required:
+          - total
+    required:
+      - success
+      - data
+      - meta
+  AddressSuggestion:
+    type: object
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      description:
+        type: string
+      place_id:
+        type: string
+    required:
+      - address
+      - description
+      - place_id
+  CreateListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: '#/definitions/ListingResponse'
+    required:
+      - success
+      - data
+  UpdateListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: '#/definitions/ListingResponse'
+    required:
+      - success
+      - data
+  DeleteListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      id:
+        type: string
+        description: The ID of the deleted listing
+    required:
+      - success
+      - id
+  ReportListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      report_id:
+        type: string
+        description: The ID of the created report
+    required:
+      - success
+      - report_id
+  ReviewsResponse:
+    type: object
+    description: Paginated response containing a list of reviews.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Review'
+        description: List of reviews.
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: "Reviews retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+
+  CreateReviewResponse:
+    type: object
+    description: Response containing the created review object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/Review'
+        description: The created review object.
+      toast:
+        type: string
+        example: "Review created successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  GetReviewResponse:
+    type: object
+    description: Response containing a single review object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/Review'
+        description: The review object returned by the API.
+      toast:
+        type: string
+        example: "Review retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  UpdateReviewResponse:
+    type: object
+    description: Response containing the updated review object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/Review'
+        description: The updated review object.
+      toast:
+        type: string
+        example: "Review updated successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  DeleteReviewResponse:
+    type: object
+    description: Response confirming review deletion.
+    properties:
+      success:
+        type: boolean
+        example: true
+      id:
+        type: string
+        description: The ID of the deleted review.
+      toast:
+        type: string
+        example: "Review deleted successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - id
+  ReportReviewResponse:
+    type: object
+    description: Response confirming review report.
+    properties:
+      success:
+        type: boolean
+        example: true
+      id:
+        type: string
+        description: The ID of the reported review.
+      toast:
+        type: string
+        example: "Review reported successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - id
+  RespondToReviewResponse:
+    type: object
+    description: Response confirming a response was added to a review.
+    properties:
+      success:
+        type: boolean
+        example: true
+      id:
+        type: string
+        description: The ID of the review responded to.
+      toast:
+        type: string
+        example: "Response added to review successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - id
+  Payment:
+    type: object
+    description: Payment object for a booking transaction.
+    properties:
+      id:
+        type: string
+        example: pay_001
+      booking_id:
+        type: string
+        example: bkg_001
+      amount:
+        type: number
+        example: 100.0
+      currency:
+        type: string
+        maxLength: 3
+        example: USD
+      method:
+        type: string
+        maxLength: 32
+        example: card
+      status:
+        type: string
+        maxLength: 32
+        example: completed
+      date:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      created_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      receipt_url:
+        type: string
+        format: uri
+        example: "https://example.com/receipt/pay_001.pdf"
+      description:
+        type: string
+        example: "Payment for booking bkg_001"
+      refunded:
+        type: boolean
+        example: false
+      fee:
+        type: number
+        example: 2.5
+      payer_id:
+        type: string
+        example: usr_201
+    required:
+      - id
+      - booking_id
+      - amount
+      - currency
+      - method
+      - status
+      - date
+      - created_at
+      - updated_at
+
+  PaymentMethod:
+    type: object
+    description: Payment method object for a user.
+    properties:
+      id:
+        type: string
+        example: pm_001
+      user_id:
+        type: string
+        example: usr_201
+      method:
+        type: string
+        example: card
+      type:
+        type: string
+        example: credit
+      status:
+        type: string
+        example: active
+      date:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      created_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      last4:
+        type: string
+        example: 4242
+      brand:
+        type: string
+        example: Visa
+      exp_month:
+        type: integer
+        example: 12
+      exp_year:
+        type: integer
+        example: 2027
+      is_default:
+        type: boolean
+        example: true
+    required:
+      - id
+      - user_id
+      - method
+      - type
+      - status
+      - date
+      - created_at
+      - updated_at
+  PaymentsResponse:
+    type: object
+    description: Paginated response containing a list of payments.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of payment objects.
+        items:
+          $ref: '#/definitions/Payment'
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: "Payments retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  UserResponse:
+    type: object
+    description: Response containing a single user object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/User'
+        description: The user object returned by the API.
+      toast:
+        type: string
+        example: "User registered successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  LoginResponse:
+    type: object
+    description: Response for user login (email/phone).
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/User'
+        description: The logged in user object.
+      token:
+        type: string
+        description: JWT access token for the user.
+      toast:
+        type: string
+        example: "Login successful."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - token
+
+  SocialAuthResponse:
+    type: object
+    description: Response for user social authentication.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/User'
+        description: The authenticated user object.
+      token:
+        type: string
+        description: JWT access token for the user.
+      toast:
+        type: string
+        example: "Social authentication successful."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - token
+
+  PasswordResetData:
+    type: object
+    properties:
+      reset_status:
+        type: string
+        description: Status of the password reset (e.g., 'initiated', 'confirmed')
+        example: confirmed
+      reset_token:
+        type: string
+        description: Token for password reset (if applicable)
+        example: "abc123token"
+
+  VerificationData:
+    type: object
+    properties:
+      verified:
+        type: boolean
+        description: Whether the verification was successful
+        example: true
+      method:
+        type: string
+        description: Verification method (e.g., 'email', 'phone')
+        example: email
+      contact:
+        type: string
+        description: The contact info verified
+        example: "user@example.com"
+
+  IdentityVerificationData:
+    type: object
+    properties:
+      verification_id:
+        type: string
+        description: ID of the verification request
+        example: "verif_12345"
+      status:
+        type: string
+        description: Status of the identity verification
+        example: "pending"
+      submitted_at:
+        type: string
+        format: date-time
+        description: Submission timestamp
+        example: "2025-06-16T12:00:00Z"
+
+  PasswordResetResponse:
+    type: object
+    description: Response for password reset initiation or confirmation.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/PasswordResetData'
+        description: Password reset result
+      toast:
+        type: string
+        example: "Password reset successful."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+
+  VerificationResponse:
+    type: object
+    description: Response for email/phone verification (initiate/confirm).
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/VerificationData'
+        description: Verification result
+      toast:
+        type: string
+        example: "Verification successful."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+
+  IdentityVerificationResponse:
+    type: object
+    description: Response for biometric/identity verification.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: '#/definitions/IdentityVerificationData'
+        description: Identity verification result
+      toast:
+        type: string
+        example: "Identity verification submitted."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  AvatarResponse:
+    type: object
+    description: Response containing the updated user avatar.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: object
+        properties:
+          avatar:
+            type: string
+            format: uri
+            description: The updated avatar URL
+        description: The updated avatar object
+      toast:
+        type: string
+        example: "Avatar updated successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+
+  UserListingsResponse:
+    type: object
+    description: Response containing all listings for a user.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of listings for the user
+        items:
+          $ref: '#/definitions/ListingSummary'
+      toast:
+        type: string
+        example: "Listings retrieved successfully."
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  ReportListingRequest:
+    type: object
+    required:
+      - reason
+      - reported_by
+    properties:
+      reason:
+        type: string
+        enum:
+          - INAPPROPRIATE
+          - MISLEADING
+          - SPAM
+          - OFFENSIVE
+          - OTHER
+      details:
+        type: string
+        maxLength: 500
+        description: Additional details about the report
+      reported_by:
+        type: string
+        description: User ID of the person reporting the listing
+  WishlistItem:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      tag:
+        type: string
+        maxLength: 32
+      thumbnail:
+        type: string
+        format: uri
+    required:
+      - listing_id
