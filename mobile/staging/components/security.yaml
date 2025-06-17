@@ -1,0 +1,9 @@
+securityDefinitions:
+  jwtAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+  googleApiKey:
+    type: apiKey
+    name: api_key
+    in: header
