@@ -23,10 +23,11 @@ if [[ -n "$ENV" ]]; then
     service_name="${service%/}"
     openapi_file="$service_name/$ENV/openapi.yaml"
     if [ -f "$openapi_file" ]; then
-      mkdir -p "$OUTPUT_DIR/$service_name/$ENV"
-      npx @redocly/cli build-docs "$openapi_file" -o "$OUTPUT_DIR/$service_name/$ENV/redoc.html"
+      output_env_dir="$OUTPUT_DIR/$service_name"
+      mkdir -p "$output_env_dir"
+      npx @redocly/cli build-docs "$openapi_file" -o "$output_env_dir/redoc.html"
       # Swagger UI HTML (fix: use correct Swagger UI embed and relative path)
-      swagger_ui_html="$OUTPUT_DIR/$service_name/$ENV/swagger.html"
+      swagger_ui_html="$output_env_dir/swagger.html"
       cat > "$swagger_ui_html" <<EOF
 <!DOCTYPE html>
 <html lang="en">
@@ -54,9 +55,9 @@ if [[ -n "$ENV" ]]; then
 </html>
 EOF
       # Copy openapi.yaml to output dir for Swagger UI
-      cp "$openapi_file" "$OUTPUT_DIR/$service_name/$ENV/openapi.yaml"
+      cp "$openapi_file" "$output_env_dir/openapi.yaml"
       # Write timestamp for this env (with millis)
-      date '+%Y-%m-%d %H:%M:%S.%3N' > "$OUTPUT_DIR/$service_name/$ENV/.generated"
+      date '+%Y-%m-%d %H:%M:%S.%3N' > "$output_env_dir/.generated"
     fi
   done
 fi
