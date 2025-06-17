@@ -1,0 +1,31 @@
+name: production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+      - name: Set GITHUB_EVENT_NAME env
+        run: echo "GITHUB_EVENT_NAME=push" >> $GITHUB_ENV
+      - name: Generate documentation
+        run: npm run generate-docs
+      - name: Add .nojekyll
+        run: touch site/.nojekyll
+      - name: Deploy to GitHub Pages (Production)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          destination_dir: prod

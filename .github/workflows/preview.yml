@@ -1,51 +1,36 @@
-name: Generate OpenAPI Documentation
+name: preview
 
 on:
-  push:
-    branches:
-      - develop
-      - main
   pull_request:
     branches:
-      - develop
-      - main
       - 'feature/**'
 
 jobs:
-  generate-docs:
+  deploy-preview:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Set GITHUB_EVENT_NAME env
-        run: echo "GITHUB_EVENT_NAME=${{ github.event_name }}" >> $GITHUB_ENV
-
+        run: echo "GITHUB_EVENT_NAME=pull_request" >> $GITHUB_ENV
       - name: Generate documentation
         run: npm run generate-docs
-
       - name: Add .nojekyll
-        run: touch .nojekyll
-
+        run: touch preview/.nojekyll
       - name: Deploy to GitHub Pages (PR Preview)
-        if: github.event_name == 'pull_request'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./preview
           publish_branch: gh-pages
           destination_dir: preview/pr-${{ github.event.pull_request.number }}
-
       - name: Comment PR with Preview Link
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -59,19 +44,3 @@ jobs:
               repo,
               body: `🚀 **Preview your API docs here:**\n\n👉 [PR Preview](${url})`
             });
-
-      - name: Deploy to GitHub Pages (Staging)
-        if: github.event_name != 'pull_request' && github.ref_name == 'develop'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          destination_dir: staging
-
-      - name: Deploy to GitHub Pages (Production)
-        if: github.event_name != 'pull_request' && github.ref_name == 'main'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          destination_dir: prod
