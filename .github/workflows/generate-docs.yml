@@ -37,7 +37,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./openapi-docs
+          publish_dir: .
           destination_dir: preview/pr-${{ github.event.pull_request.number }}
 
       - name: Comment PR with Preview Link
@@ -61,4 +61,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./openapi-docs
+          publish_dir: .
