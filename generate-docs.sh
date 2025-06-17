@@ -1,6 +1,11 @@
 #!/bin/bash
 
+# Set output directory based on event type
 OUTPUT_DIR="site"
+if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+  OUTPUT_DIR="preview"
+fi
+
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
