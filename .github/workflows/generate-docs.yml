@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set GITHUB_EVENT_NAME env
+        run: echo "GITHUB_EVENT_NAME=${{ github.event_name }}" >> $GITHUB_ENV
+
       - name: Generate documentation
         run: npm run generate-docs
 
@@ -37,7 +40,8 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          publish_dir: ./preview
+          publish_branch: gh-pages
           destination_dir: preview/pr-${{ github.event.pull_request.number }}
 
       - name: Comment PR with Preview Link

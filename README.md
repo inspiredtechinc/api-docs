@@ -22,7 +22,7 @@ This repository is designed to host OpenAPI documentation for multiple services,
 ### Local Development
 
 - Run `make local` to generate docs for both environments and serve locally at [http://localhost:8000](http://localhost:8000).
-- Run `make clean` to remove all generated files.
+- Run `make clean` to remove all generated files..
 
 ### GitHub Actions
 
