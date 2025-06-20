@@ -1,0 +1,6487 @@
+swagger: "2.0"
+info:
+  contact:
+    email: info@aircouch.com
+    name: project-x-api
+    url: https://www.inspiredtech.ca
+  description: API for Project X, a prototype for the x platform.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://www.inspiredtech.ca/terms
+  title: project-x-api
+  version: 1.0.0
+host: project-x-staging-gateway-8ua0taf7.uc.gateway.dev
+basePath: /api/v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+tags:
+  - description: User operations
+    name: user
+  - description: Listing operations
+    name: listing
+  - description: Booking operations
+    name: booking
+  - description: Message operations
+    name: message
+  - description: Review operations
+    name: review
+  - description: Payment operations
+    name: payment
+  - description: Notification operations
+    name: notification
+  - description: Search operations
+    name: search
+  - description: Wishlist operations
+    name: wishlist
+  - description: Document operations
+    name: document
+  - description: Dashboard operations
+    name: dashboard
+  - description: Support operations
+    name: support
+paths:
+  /bookings:
+    get:
+      description: Returns all bookings belonging to the currently authenticated user. User ID is extracted from the JWT token. Use this endpoint for "my bookings" in the UI.
+      operationId: bookingsGetAllBookings
+      parameters:
+        - default: 1
+          description: Page number (starts at 1)
+          in: query
+          minimum: 1
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Number of items per page
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: All bookings for the authenticated user
+          schema:
+            $ref: "#/definitions/BookingsResponse"
+        "400":
+          description: Bad request (invalid parameters)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all bookings for the authenticated user ("my bookings")
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      description: Create a new booking for a listing.
+      operationId: bookingsCreateBooking
+      parameters:
+        - description: The booking to create
+          in: body
+          name: booking
+          required: true
+          schema:
+            $ref: "#/definitions/BookingRequest"
+      responses:
+        "201":
+          description: The created booking
+          schema:
+            $ref: "#/definitions/BookingResponse"
+        "400":
+          description: Bad request (invalid booking data)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: The listing was not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Book a stay
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /bookings/heartbeat:
+    get:
+      description: Health check endpoint for the booking service.
+      operationId: bookingsHeartbeat
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            example: OK
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Heartbeat
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /bookings/{id}:
+    get:
+      description: Retrieve a booking by its ID.
+      operationId: bookingsGetBookingById
+      parameters:
+        - description: Booking ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The booking
+          schema:
+            $ref: "#/definitions/BookingResponse"
+        "400":
+          description: Bad request (invalid ID)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get a booking
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /bookings/{id}/accept:
+    patch:
+      description: Accept a booking by its ID.
+      operationId: bookingsAcceptBookingById
+      parameters:
+        - description: Booking ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The booking to accept
+          in: body
+          name: booking
+          required: true
+          schema:
+            $ref: "#/definitions/AcceptBookingRequest"
+      responses:
+        "200":
+          description: Booking accepted
+          schema:
+            $ref: "#/definitions/BookingResponse"
+        "400":
+          description: Bad request (invalid ID or state)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Accept a booking
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /bookings/{id}/cancel:
+    patch:
+      description: Cancel a booking by its ID.
+      operationId: bookingsCancelBookingById
+      parameters:
+        - description: Booking ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The booking to cancel
+          in: body
+          name: booking
+          required: true
+          schema:
+            $ref: "#/definitions/CancelBookingRequest"
+      responses:
+        "200":
+          description: Booking cancelled
+          schema:
+            $ref: "#/definitions/BookingResponse"
+        "400":
+          description: Bad request (invalid ID or state)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Cancel a booking
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /bookings/{id}/reject:
+    patch:
+      description: Reject a booking by its ID.
+      operationId: bookingsRejectBookingById
+      parameters:
+        - description: Booking ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+        - description: The message to send to the user
+          in: body
+          name: message
+          required: true
+          schema:
+            properties:
+              message:
+                maxLength: 255
+                type: string
+              reason:
+                enum:
+                  - Listing is no longer available
+                  - Going on vacation
+                  - Traveling for work
+                  - Guest is not a good fit
+                  - Other
+                maxLength: 255
+                type: string
+            required:
+              - message
+              - reason
+            type: object
+      responses:
+        "200":
+          description: Booking rejected
+          schema:
+            $ref: "#/definitions/BookingResponse"
+        "400":
+          description: Bad request (invalid ID or state)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Reject a booking
+      tags:
+        - booking
+      x-google-backend:
+        address: https://booking-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      responses:
+        "200":
+          description: Analytics summary
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Get platform analytics summary
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/audit-logs:
+    get:
+      operationId: listAuditLogs
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of audit logs
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List admin/audit logs
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/bookings:
+    get:
+      operationId: listBookings
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - in: query
+          name: status
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of bookings
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List/search bookings
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/bookings/{id}:
+    delete:
+      operationId: deleteBookingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Booking deleted
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Delete booking (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    get:
+      operationId: getBookingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Booking details
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Get booking details
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateBookingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: booking
+          required: true
+          schema:
+            $ref: "#/definitions/BookingAdminUpdateRequest"
+      responses:
+        "200":
+          description: Booking updated
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Update booking (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/bookings/{id}/export:
+    get:
+      operationId: exportBookingData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Booking data export
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Export booking data
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/bookings/{id}/refund:
+    post:
+      operationId: refundBooking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: refund
+          required: true
+          schema:
+            properties:
+              amount:
+                format: float
+                type: number
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Refund processed
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Booking not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Refund booking
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/documents:
+    get:
+      operationId: listDocuments
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - in: query
+          name: status
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of documents
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List/search documents (KYC, verification)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/documents/{id}/export:
+    get:
+      operationId: exportDocumentData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Document data export
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Document not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Export document data
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/documents/{id}/verify:
+    post:
+      operationId: verifyDocument
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: action
+          required: true
+          schema:
+            properties:
+              action:
+                enum:
+                  - approve
+                  - reject
+                type: string
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Verification result
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Document not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Verify document (KYC)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/heartbeat:
+    get:
+      operationId: dashboardHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Dashboard service heartbeat
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/listings:
+    get:
+      operationId: listListings
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - in: query
+          name: status
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of listings
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List/search listings
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/listings/{id}:
+    delete:
+      operationId: deleteListingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Listing deleted
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Delete listing (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    get:
+      operationId: getListingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Listing details
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Get listing details
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateListingById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: listing
+          required: true
+          schema:
+            $ref: "#/definitions/ListingAdminUpdateRequest"
+      responses:
+        "200":
+          description: Listing updated
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Update listing (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/listings/{id}/export:
+    get:
+      operationId: exportListingData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Listing data export
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Export listing data
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/listings/{id}/moderate:
+    post:
+      operationId: moderateListing
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: action
+          required: true
+          schema:
+            properties:
+              action:
+                enum:
+                  - approve
+                  - reject
+                type: string
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Moderation result
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Moderate listing (approve/reject)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/notifications:
+    get:
+      operationId: listNotifications
+      parameters:
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of notifications
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List notifications
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: sendNotification
+      parameters:
+        - in: body
+          name: notification
+          required: true
+          schema:
+            $ref: "#/definitions/NotificationRequest"
+      responses:
+        "201":
+          description: Notification sent
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Send notification
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/reviews:
+    get:
+      operationId: adminListReviews
+      parameters:
+        - in: query
+          name: query
+          type: string
+        - in: query
+          name: status
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of reviews
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List/search reviews
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/reviews/{id}/export:
+    get:
+      operationId: exportReviewData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Review data export
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Export review data
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/reviews/{id}/moderate:
+    post:
+      operationId: moderateReview
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: action
+          required: true
+          schema:
+            properties:
+              action:
+                enum:
+                  - approve
+                  - reject
+                  - remove
+                type: string
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Moderation result
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Moderate review (approve/reject/remove)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/reviews/{id}/respond:
+    post:
+      operationId: adminRespondToReview
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: response
+          required: true
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: Response added
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Respond to a review (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/settings:
+    get:
+      operationId: getSettings
+      responses:
+        "200":
+          description: Settings/config
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Get platform settings/config
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateSettings
+      parameters:
+        - in: body
+          name: settings
+          required: true
+          schema:
+            $ref: "#/definitions/SettingsUpdateRequest"
+      responses:
+        "200":
+          description: Settings updated
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Update platform settings/config
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/users:
+    get:
+      operationId: listUsers
+      parameters:
+        - description: Search query (name, email, etc)
+          in: query
+          name: query
+          required: false
+          type: string
+        - description: Filter by status (active, banned, pending, etc)
+          in: query
+          name: status
+          required: false
+          type: string
+        - default: 1
+          in: query
+          name: page
+          type: integer
+        - default: 20
+          in: query
+          name: limit
+          type: integer
+      responses:
+        "200":
+          description: List of users
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: List/search users
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/users/{id}:
+    delete:
+      operationId: deleteUserById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "204":
+          description: User deleted
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Delete user (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    get:
+      operationId: getUserById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Get user details
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateUserById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: user
+          required: true
+          schema:
+            $ref: "#/definitions/UserAdminUpdateRequest"
+      responses:
+        "200":
+          description: User updated
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Update user (admin)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/users/{id}/ban:
+    post:
+      operationId: banUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+        - in: body
+          name: reason
+          required: true
+          schema:
+            properties:
+              reason:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: User banned
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Ban or suspend a user
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/users/{id}/export:
+    get:
+      operationId: exportUserData
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: User data export
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Export user data
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /dashboard/users/{id}/impersonate:
+    post:
+      operationId: impersonateUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Impersonation token/session
+          schema:
+            $ref: "#/definitions/DashboardResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DashboardError"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DashboardError"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DashboardError"
+      security:
+        - jwtAuth: []
+      summary: Impersonate user (admin login as user)
+      tags:
+        - dashboard
+      x-google-backend:
+        address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /documents:
+    get:
+      description: Returns a paginated list of documents belonging to the currently authenticated user. User ID is extracted from the JWT token.
+      operationId: documentsGetAllDocumentsForCurrentUser
+      parameters:
+        - default: 1
+          description: Page number (starts at 1)
+          in: query
+          minimum: 1
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Number of items per page
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: Paginated list of documents
+          schema:
+            $ref: components/definitions.yaml#/definitions/DocumentsResponse
+        "400":
+          description: Bad request
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "404":
+          description: Not found
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "500":
+          description: Internal server error
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        default:
+          description: Default error response
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+      security:
+        - jwtAuth: []
+      summary: Get all documents for the authenticated user
+      tags:
+        - document
+      x-google-backend:
+        address: https://document-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: documentsCreateDocument
+      parameters:
+        - description: The document to create
+          in: body
+          name: document
+          required: true
+          schema:
+            $ref: components/definitions.yaml#/definitions/DocumentRequest
+      responses:
+        "201":
+          description: The created document
+          schema:
+            $ref: components/definitions.yaml#/definitions/DocumentResponse
+        "400":
+          description: Bad request
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "404":
+          description: Not found
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "500":
+          description: Internal server error
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        default:
+          description: Default error response
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+      security:
+        - jwtAuth: []
+      summary: Create a new document see enum DocumentType for valid types
+      tags:
+        - document
+      x-google-backend:
+        address: https://document-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /documents/heartbeat:
+    get:
+      operationId: documentsHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+          schema:
+            example: OK
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "404":
+          description: Not found
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "500":
+          description: Internal server error
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        default:
+          description: Default error response
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+      security: []
+      summary: Document service heartbeat
+      tags:
+        - document
+      x-google-backend:
+        address: https://document-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /documents/{id}:
+    delete:
+      operationId: documentsDeleteDocument
+      parameters:
+        - description: Document ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^[a-zA-Z0-9]*$
+          required: true
+          type: string
+      responses:
+        "204":
+          description: Document deleted
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "400":
+          description: Bad request
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "404":
+          description: Not found
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "500":
+          description: Internal server error
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        default:
+          description: Default error response
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+      security:
+        - jwtAuth: []
+      summary: Delete a document
+      tags:
+        - document
+      x-google-backend:
+        address: https://document-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    put:
+      operationId: documentsOverwriteDocument
+      parameters:
+        - description: Document ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^[a-zA-Z0-9]*$
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The overwritten document
+          schema:
+            $ref: components/definitions.yaml#/definitions/DocumentResponse
+        "400":
+          description: Bad request
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "404":
+          description: Not found
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        "500":
+          description: Internal server error
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+        default:
+          description: Default error response
+          schema:
+            $ref: components/definitions.yaml#/definitions/DefaultResponse
+      security:
+        - jwtAuth: []
+      summary: Overwrite a document
+      tags:
+        - document
+      x-google-backend:
+        address: https://document-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings:
+    get:
+      operationId: listingsGetAllListings
+      parameters:
+        - description: Latitude of the user's location
+          format: double
+          in: query
+          name: latitude
+          required: false
+          type: number
+        - description: Longitude of the user's location
+          format: double
+          in: query
+          name: longitude
+          required: false
+          type: number
+        - default: 1
+          description: Page number (starts at 1)
+          in: query
+          minimum: 1
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Number of items per page
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: All listings
+          schema:
+            $ref: "#/definitions/GetAllListingsResponse"
+        "400":
+          description: Bad request (invalid parameters)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Get all listings
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      description: Create a new listing for a user
+      operationId: listingsCreateListing
+      parameters:
+        - description: The listing to create
+          in: body
+          name: listing
+          required: true
+          schema:
+            $ref: "#/definitions/ListingRequest"
+      responses:
+        "201":
+          description: The created listing
+          schema:
+            $ref: "#/definitions/CreateListingResponse"
+        "400":
+          description: Bad request (invalid listing data)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Create a new listing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/address:
+    get:
+      description: |
+        Returns a list of address suggestions based on the user's query and location. Useful for implementing address autocomplete features in the UI.
+      operationId: listingsAddressAutoComplete
+      parameters:
+        - description: Address to search for (partial or full address string)
+          in: query
+          name: q
+          required: true
+          type: string
+        - description: Latitude of the user's location (for proximity ranking)
+          format: double
+          in: query
+          name: lat
+          required: true
+          type: number
+        - description: Longitude of the user's location (for proximity ranking)
+          format: double
+          in: query
+          name: lon
+          required: true
+          type: number
+      responses:
+        "200":
+          description: Address suggestions
+          schema:
+            $ref: "#/definitions/AddressAutoCompleteResponse"
+        "400":
+          description: Bad request (invalid query)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Address auto complete
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/heartbeat:
+    get:
+      operationId: listingsHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Heartbeat
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/search:
+    post:
+      operationId: listingsSearchListings
+      parameters:
+        - description: Search criteria (location, dates, guests, price, instant_book, category, keywords, gender, etc.)
+          in: body
+          name: search
+          required: true
+          schema:
+            $ref: "#/definitions/SearchListingsRequest"
+      responses:
+        "200":
+          description: Search results
+          schema:
+            $ref: "#/definitions/SearchListingsResponse"
+        "400":
+          description: Bad request (invalid search)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Search listings
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/user:
+    get:
+      description: Returns all listings belonging to the currently authenticated user. User ID is extracted from the JWT token. Use this endpoint for "my listings" in the UI.
+      operationId: listingsGetAllListingsForCurrentUser
+      parameters:
+        - default: 1
+          description: Page number (starts at 1)
+          in: query
+          minimum: 1
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Number of items per page
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: All listings for the authenticated user
+          schema:
+            $ref: "#/definitions/GetAllListingsResponse"
+        "400":
+          description: Bad request (invalid parameters)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all listings for the authenticated user ("my listings")
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/{id}:
+    delete:
+      operationId: listingsDeleteListing
+      parameters:
+        - description: Listing ID
+          in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Listing deleted
+          schema:
+            $ref: "#/definitions/DeleteListingResponse"
+        "400":
+          description: Bad request (invalid ID)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Delete a listing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    get:
+      operationId: listingsGetListing
+      parameters:
+        - description: Listing ID
+          in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The listing
+          schema:
+            $ref: "#/definitions/GetListingResponse"
+        "400":
+          description: Bad request (invalid ID)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get a listing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    put:
+      operationId: listingsUpdateListing
+      parameters:
+        - description: Listing ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The listing to update
+          in: body
+          name: listing
+          required: true
+          schema:
+            $ref: "#/definitions/ListingRequest"
+      responses:
+        "200":
+          description: Listing updated
+          schema:
+            $ref: "#/definitions/UpdateListingResponse"
+        "400":
+          description: Bad request (invalid ID or data)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Update a listing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/{id}/report:
+    post:
+      operationId: listingsReportListing
+      parameters:
+        - description: Listing ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The report to create
+          in: body
+          name: report
+          required: true
+          schema:
+            $ref: "#/definitions/ReportListingRequest"
+      responses:
+        "201":
+          description: Listing reported
+          schema:
+            $ref: "#/definitions/ReportListingResponse"
+        "400":
+          description: Bad request (invalid ID or report)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Report a listing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /listings/{id}/weather:
+    get:
+      operationId: listingsGetListingWeather
+      parameters:
+        - description: Listing ID
+          in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Return the listing weather
+          schema:
+            $ref: "#/definitions/GetListingWeatherResponse"
+        "400":
+          description: Bad request (invalid ID)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Listing not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get weather for a listing
+      tags:
+        - listing
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /messages:
+    get:
+      operationId: messagesGetAllMessagesForCurrentUser
+      parameters:
+        - default: 1
+          description: Page number (starts at 1)
+          in: query
+          minimum: 1
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Number of items per page
+          in: query
+          maximum: 100
+          name: limit
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: All messages for the authenticated user
+          schema:
+            $ref: "#/definitions/GetAllMessagesResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all messages for the authenticated user
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: messagesCreateMessage
+      parameters:
+        - description: The message to create
+          in: body
+          name: message
+          required: true
+          schema:
+            $ref: "#/definitions/MessageRequest"
+      responses:
+        "201":
+          description: The created message
+          schema:
+            $ref: "#/definitions/MessageResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Create a new message
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /messages/heartbeat:
+    get:
+      operationId: messagesHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Message service heartbeat
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /messages/{id}:
+    get:
+      operationId: messagesGetMessage
+      parameters:
+        - description: Message ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^[a-zA-Z0-9]*$
+          required: true
+          type: string
+      responses:
+        "200":
+          description: A message
+          schema:
+            $ref: "#/definitions/MessageResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get a message
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /messages/{id}/archive:
+    patch:
+      operationId: messagesArchiveMessage
+      parameters:
+        - description: Message ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^[a-zA-Z0-9]*$
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The archived message
+          schema:
+            $ref: "#/definitions/MessageResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Archive a message
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /messages/{id}/read:
+    patch:
+      operationId: messagesMarkMessageAsRead
+      parameters:
+        - description: Message ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^[a-zA-Z0-9]*$
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The read message
+          schema:
+            $ref: "#/definitions/MessageResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Mark a message as read
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /messages/{id}/unread:
+    patch:
+      operationId: messagesMarkMessageAsUnread
+      parameters:
+        - description: Message ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^[a-zA-Z0-9]*$
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The unread message
+          schema:
+            $ref: "#/definitions/MessageResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Mark a message as unread
+      tags:
+        - message
+      x-google-backend:
+        address: https://message-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /payments/heartbeat:
+    get:
+      operationId: paymentHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Payment service heartbeat
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /payments/pay:
+    post:
+      operationId: paymentCreatePayment
+      parameters:
+        - description: The payment to create
+          in: body
+          name: payment
+          required: true
+          schema:
+            $ref: "#/definitions/PaymentRequest"
+      responses:
+        "201":
+          description: The created payment
+          schema:
+            $ref: "#/definitions/PaymentResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Create a new payment
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /payments/payment-methods:
+    get:
+      operationId: paymentGetAllPaymentMethods
+      responses:
+        "200":
+          description: All available payment methods
+          schema:
+            $ref: "#/definitions/PaymentMethodsResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all available payment methods
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /payments/user/{id}/payment-methods:
+    get:
+      operationId: paymentGetAllPaymentMethodsForUser
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^example-[0-9a-z]+$
+          required: true
+          type: string
+      responses:
+        "200":
+          description: All payment methods for a user
+          schema:
+            $ref: "#/definitions/PaymentMethodsResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all payment methods for a user
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: paymentCreatePaymentMethodForUser
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          pattern: ^example-[0-9a-z]+$
+          required: true
+          type: string
+        - description: The payment method to create
+          in: body
+          name: payment_method
+          required: true
+          schema:
+            $ref: "#/definitions/PaymentMethodRequest"
+      responses:
+        "201":
+          description: The created payment method
+          schema:
+            $ref: "#/definitions/PaymentMethodResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Create a new payment method for a user
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /payments/user/{id}/payments:
+    get:
+      operationId: paymentGetAllPaymentsForUser
+      parameters:
+        - description: User ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: All payments for a user
+          schema:
+            $ref: "#/definitions/PaymentsResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all payments for a user
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /payments/{id}:
+    get:
+      operationId: paymentGetPayment
+      parameters:
+        - description: Payment ID
+          in: path
+          maxLength: 32
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: A payment
+          schema:
+            $ref: "#/definitions/PaymentResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get a payment
+      tags:
+        - payment
+      x-google-backend:
+        address: https://payment-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /reviews:
+    get:
+      operationId: listReviews
+      parameters:
+        - description: Filter by author user ID
+          in: query
+          name: author
+          required: false
+          type: string
+        - description: Filter by target user or listing ID
+          in: query
+          name: target
+          required: false
+          type: string
+        - description: Filter by review type (user or listing)
+          enum:
+            - user
+            - listing
+          in: query
+          name: type
+          required: false
+          type: string
+        - description: Filter by review category (e.g., couchsurf, workspace)
+          in: query
+          name: category
+          required: false
+          type: string
+        - description: Filter by listing ID
+          in: query
+          name: listing_id
+          required: false
+          type: string
+        - default: 1
+          description: Page number
+          in: query
+          name: page
+          required: false
+          type: integer
+        - default: 10
+          description: Page size
+          in: query
+          name: limit
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: List of reviews matching filters
+          schema:
+            $ref: "#/definitions/ReviewsResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get reviews with filters (author, target, type, category, etc.)
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: createReview
+      parameters:
+        - description: The review to create
+          in: body
+          name: review
+          required: true
+          schema:
+            $ref: "#/definitions/ReviewRequest"
+      responses:
+        "201":
+          description: The created review
+          schema:
+            $ref: "#/definitions/CreateReviewResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Create a new review (user or listing)
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /reviews/heartbeat:
+    get:
+      operationId: reviewHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Review service heartbeat
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /reviews/{id}:
+    delete:
+      operationId: deleteReview
+      parameters:
+        - description: Review ID
+          in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Review deleted
+          schema:
+            $ref: "#/definitions/DeleteReviewResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Delete a review
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    get:
+      operationId: getReviewById
+      parameters:
+        - description: Review ID
+          in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: The review
+          schema:
+            $ref: "#/definitions/GetReviewResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get a single review by ID
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: patchReview
+      parameters:
+        - description: Review ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The review fields to update
+          in: body
+          name: review
+          required: true
+          schema:
+            $ref: "#/definitions/ReviewUpdateRequest"
+      responses:
+        "200":
+          description: The updated review
+          schema:
+            $ref: "#/definitions/UpdateReviewResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Partially update a review (e.g., change comment, rating, etc.)
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /reviews/{id}/report:
+    post:
+      operationId: reportReview
+      parameters:
+        - description: Review ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The report details
+          in: body
+          name: report
+          required: true
+          schema:
+            $ref: "#/definitions/ReportReviewRequest"
+      responses:
+        "200":
+          description: Review reported successfully
+          schema:
+            $ref: "#/definitions/ReportReviewResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Report an inappropriate review
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /reviews/{id}/respond:
+    post:
+      operationId: respondToReview
+      parameters:
+        - description: Review ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The response to add to the review
+          in: body
+          name: response
+          required: true
+          schema:
+            $ref: "#/definitions/ReviewResponseRequest"
+      responses:
+        "200":
+          description: Response added successfully
+          schema:
+            $ref: "#/definitions/RespondToReviewResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Review not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "500":
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Respond to a review
+      tags:
+        - review
+      x-google-backend:
+        address: https://review-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/heartbeat:
+    get:
+      operationId: userHeartbeat
+      responses:
+        "200":
+          description: User service heartbeat
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: User service heartbeat
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/login/email:
+    post:
+      operationId: emailSignIn
+      parameters:
+        - description: The credentials to login
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              email:
+                format: email
+                type: string
+              password:
+                maxLength: 50
+                minLength: 8
+                type: string
+            required:
+              - email
+              - password
+            type: object
+      responses:
+        "200":
+          description: The logged in user
+          schema:
+            $ref: "#/definitions/LoginResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Sign in a user via email
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/login/phone:
+    post:
+      operationId: phoneSignIn
+      parameters:
+        - description: The credentials to login
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              password:
+                maxLength: 50
+                minLength: 8
+                type: string
+              phone_number:
+                description: The phone number in E.164 format (e.g., +1234567890)
+                type: string
+            required:
+              - phone_number
+              - password
+            type: object
+      responses:
+        "200":
+          description: The logged in user
+          schema:
+            $ref: "#/definitions/LoginResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Sign in a user via phone number
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me:
+    get:
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: The current user
+          schema:
+            $ref: "#/definitions/UserResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get current user
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    put:
+      operationId: updateCurrentUser
+      parameters:
+        - description: The user to update
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              bio:
+                type: string
+              birthday:
+                format: date-time
+                type: string
+              city:
+                type: string
+              country:
+                maxItems: 10
+                type: string
+              first_name:
+                type: string
+              gender:
+                $ref: "#/definitions/Gender"
+              interests:
+                items:
+                  type: string
+                maxItems: 10
+                type: array
+              languages:
+                items:
+                  type: string
+                maxItems: 10
+                type: array
+              last_name:
+                type: string
+              phone:
+                type: string
+            type: object
+      responses:
+        "200":
+          description: The updated user
+          schema:
+            $ref: "#/definitions/UserResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Update current user
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me/avatar:
+    delete:
+      operationId: deleteCurrentUserAvatar
+      responses:
+        "200":
+          description: The updated user
+          schema:
+            $ref: "#/definitions/AvatarResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Delete current user's avatar
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: updateCurrentUserAvatar
+      parameters:
+        - description: JSON body with Avatar URL
+          in: body
+          name: avatar_url
+          required: true
+          schema:
+            format: uri
+            type: string
+      responses:
+        "200":
+          description: The updated user
+          schema:
+            $ref: "#/definitions/AvatarResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Update current user's avatar
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me/email/confirm:
+    post:
+      operationId: confirmCurrentUserEmail
+      parameters:
+        - description: The email verification code
+          in: body
+          name: otp
+          required: true
+          schema:
+            properties:
+              contact:
+                description: The email address to verify
+                format: email
+                type: string
+              otp:
+                description: The email verification code
+                maxLength: 6
+                pattern: ^[0-9]*$
+                type: string
+            required:
+              - otp
+              - contact
+            type: object
+      responses:
+        "200":
+          description: The email verification response
+          schema:
+            $ref: "#/definitions/VerificationResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Confirm current user's email
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me/email/verify:
+    post:
+      operationId: verifyCurrentUserEmail
+      parameters:
+        - description: The email verification request
+          in: body
+          name: email
+          schema:
+            properties:
+              email:
+                format: email
+                type: string
+            required:
+              - email
+            type: object
+      responses:
+        "200":
+          description: The email verification response
+          schema:
+            $ref: "#/definitions/VerificationResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Verify current user's email
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me/identity/verify:
+    post:
+      operationId: submitCurrentUserBiometricVerificationRequest
+      parameters:
+        - description: Biometric Verification Request
+          in: body
+          name: body
+          required: true
+          schema:
+            properties:
+              documents:
+                additionalProperties:
+                  properties:
+                    back:
+                      description: URL to the back of the document
+                      format: url
+                      type: string
+                    front:
+                      description: URL to the front of the document
+                      format: url
+                      type: string
+                  type: object
+                description: The documents to verify
+                type: object
+              id:
+                description: The ID of the user
+                type: string
+              selfies:
+                description: Selfies for verification
+                items:
+                  properties:
+                    description:
+                      description: Description of the selfie
+                      type: string
+                    urls:
+                      description: List of selfie URLs
+                      items:
+                        format: url
+                        type: string
+                      type: array
+                  type: object
+                type: array
+            required:
+              - id
+              - documents
+              - selfies
+            type: object
+      responses:
+        "200":
+          description: The identity verification response
+          schema:
+            $ref: "#/definitions/IdentityVerificationResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Submit biometric verification request for current user
+      tags:
+        - user
+  /users/me/listings:
+    get:
+      operationId: getCurrentUserListings
+      responses:
+        "200":
+          description: All listings for the user
+          schema:
+            $ref: "#/definitions/UserListingsResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all listings for the current user
+      tags:
+        - user
+      x-google-backend:
+        address: https://listing-service-ee3nwblsmq-uc.a.run.app/api/v1/listings/user
+  /users/me/password/change:
+    post:
+      operationId: changeCurrentUserPassword
+      parameters:
+        - description: The password change request
+          in: body
+          name: password_change
+          required: true
+          schema:
+            properties:
+              new_password:
+                description: The new password
+                maxLength: 50
+                minLength: 8
+                type: string
+              old_password:
+                description: The current password
+                maxLength: 50
+                minLength: 8
+                type: string
+              verify_password:
+                description: Verify the new password
+                maxLength: 50
+                minLength: 8
+                type: string
+            required:
+              - old_password
+              - new_password
+              - verify_password
+            type: object
+      responses:
+        "200":
+          description: The password change response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Change current user's password
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me/phone/confirm:
+    post:
+      operationId: confirmCurrentUserPhoneNumberVerification
+      parameters:
+        - description: JSON body with the verification code for confirmation
+          in: body
+          name: phone_number
+          required: true
+          schema:
+            properties:
+              contact:
+                description: The phone number to verify
+                example: "+1234567890"
+                maxLength: 20
+                type: string
+              otp:
+                description: The verification code sent to the user's phone
+                maxLength: 6
+                pattern: ^[0-9]*$
+                type: string
+            required:
+              - otp
+              - contact
+            type: object
+      responses:
+        "200":
+          description: Phone Number Successfully Verified
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Confirm current user's phone number verification
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/me/phone/verify:
+    post:
+      operationId: initiateCurrentUserPhoneNumberVerification
+      parameters:
+        - description: JSON body with the phone number for verification initiation
+          in: body
+          name: phone_number
+          required: true
+          schema:
+            properties:
+              phone_number:
+                description: The phone number to verify
+                example: "+1234567890"
+                maxLength: 20
+                type: string
+            required:
+              - phone_number
+            type: object
+      responses:
+        "200":
+          description: Verification Initiated Successfully
+          schema:
+            $ref: "#/definitions/VerificationResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Initiate phone number verification for the current user
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/register/email:
+    post:
+      operationId: emailSignUp
+      parameters:
+        - description: The user to register
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              email:
+                format: email
+                type: string
+              password:
+                maxLength: 50
+                minLength: 8
+                type: string
+            required:
+              - email
+              - password
+            type: object
+      responses:
+        "201":
+          description: The registered user
+          schema:
+            $ref: "#/definitions/UserResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: User signup via email
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/register/email/confirm:
+    post:
+      operationId: emailSignUpOTPConfirm
+      parameters:
+        - description: The email verification code
+          in: body
+          name: otp
+          required: true
+          schema:
+            properties:
+              contact:
+                description: The email address used for registration
+                format: email
+                type: string
+              otp:
+                description: The email verification code
+                maxLength: 6
+                pattern: ^[0-9]*$
+                type: string
+            required:
+              - otp
+              - contact
+            type: object
+      responses:
+        "201":
+          description: The registered and confirmed user
+          schema:
+            $ref: "#/definitions/UserResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: User signup via email confirmation
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/register/otp/email:
+    post:
+      operationId: sendRegistrationEmailOTP
+      parameters:
+        - description: The email address to send the OTP
+          in: body
+          name: email
+          required: true
+          schema:
+            properties:
+              email:
+                description: The email address to send the OTP
+                format: email
+                type: string
+            required:
+              - email
+            type: object
+      responses:
+        "201":
+          description: The OTP sent to the email
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Resend registration email OTP
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/register/otp/phone:
+    post:
+      operationId: sendRegistrationPhoneOTP
+      parameters:
+        - description: The phone number to send the OTP
+          in: body
+          name: phone_number
+          required: true
+          schema:
+            properties:
+              phone_number:
+                description: The phone number in E.164 format (e.g., +1234567890)
+                type: string
+            required:
+              - phone_number
+            type: object
+      responses:
+        "201":
+          description: The OTP sent to the phone
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Resend registration Phone OTP
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/register/phone:
+    post:
+      operationId: phoneSignUp
+      parameters:
+        - description: The user to register
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              password:
+                maxLength: 50
+                minLength: 8
+                type: string
+              phone_number:
+                description: The phone number in E.164 format (e.g., +1234567890)
+                type: string
+            required:
+              - phone_number
+              - password
+            type: object
+      responses:
+        "201":
+          description: The registered user
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: User signup via phone number
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/register/phone/confirm:
+    post:
+      operationId: phoneSignUpOTPConfirm
+      parameters:
+        - description: The phone verification code
+          in: body
+          name: otp
+          required: true
+          schema:
+            properties:
+              contact:
+                description: The phone number in E.164 format (e.g., +1234567890)
+                type: string
+              otp:
+                description: The phone verification code
+                maxLength: 6
+                pattern: ^[0-9]*$
+                type: string
+            required:
+              - otp
+              - contact
+            type: object
+      responses:
+        "201":
+          description: The registered and confirmed user
+          schema:
+            $ref: "#/definitions/UserResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: User signup via phone number confirmation
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /users/social/auth:
+    post:
+      operationId: socialAuth
+      parameters:
+        - description: The user cred to authenticate
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              id_token:
+                description: The social media token
+                type: string
+            required:
+              - id_token
+            type: object
+      responses:
+        "200":
+          description: Return a user with JWT if exists or create a new user
+          schema:
+            $ref: "#/definitions/SocialAuthResponse"
+        "400":
+          description: Invalid request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: User auth via social media
+      tags:
+        - user
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /wishlists/heartbeat:
+    get:
+      operationId: wishlistHeartbeat
+      responses:
+        "200":
+          description: Heartbeat
+          schema:
+            example: OK
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default error response
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security: []
+      summary: Wishlist service heartbeat
+      tags:
+        - wishlist
+      x-google-backend:
+        address: https://wishlist-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /wishlists/users/{id}:
+    get:
+      operationId: getAllListingsInWishlist
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: All listings in wishlist
+          schema:
+            $ref: "#/definitions/WishlistListResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Get all listings in wishlist
+      tags:
+        - wishlist
+      x-google-backend:
+        address: https://wishlist-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    patch:
+      operationId: deleteListingFromWishlist
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The wishlist item to delete
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/WishlistRequest"
+      responses:
+        "200":
+          description: All listings in wishlist
+          schema:
+            $ref: "#/definitions/WishlistResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Delete a listing from wishlist
+      tags:
+        - wishlist
+      x-google-backend:
+        address: https://wishlist-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+    post:
+      operationId: addListingToWishlist
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: The wishlist item to add
+          in: body
+          name: WishlistItem
+          required: true
+          schema:
+            $ref: "#/definitions/WishlistRequest"
+      responses:
+        "201":
+          description: All listings in wishlist
+          schema:
+            $ref: "#/definitions/WishlistResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Add a listing to wishlist
+      tags:
+        - wishlist
+      x-google-backend:
+        address: https://wishlist-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+  /wishlists/users/{id}/tags/{name}:
+    patch:
+      operationId: deleteTagFromWishlist
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Tag name
+          in: path
+          name: name
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Tag deleted from wishlist
+          schema:
+            $ref: "#/definitions/WishlistTagDeleteResponse"
+        "400":
+          description: Bad request
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "401":
+          description: Unauthorized (missing or invalid token)
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+        default:
+          description: Default
+          schema:
+            $ref: "#/definitions/DefaultResponse"
+      security:
+        - jwtAuth: []
+      summary: Delete a tag from wishlist
+      tags:
+        - wishlist
+      x-google-backend:
+        address: https://wishlist-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+definitions:
+  DefaultResponse:
+    type: object
+    description: Standard error response model for failed requests.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: false
+      error:
+        type: string
+        description: Error message describing the failure.
+        example: Invalid booking ID.
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: Unable to process your request.
+    required:
+      - success
+      - error
+  Document:
+    type: object
+    description: Represents a user-uploaded document.
+    properties:
+      id:
+        type: string
+        description: Unique document ID
+        example: doc_12345
+      user_id:
+        type: string
+        description: ID of the user who owns the document
+        example: usr_201
+      type:
+        type: string
+        description: Document type (see enum DocumentType)
+        example: Listing
+      name:
+        type: string
+        description: Name of the document
+        example: passport.pdf
+      url:
+        type: string
+        format: uri
+        description: Publicly accessible URL for the document
+        example: https://cdn.example.com/docs/passport.pdf
+      created_at:
+        type: string
+        format: date-time
+        description: Document creation timestamp
+        example: "2025-06-08T12:00:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        description: Last update timestamp
+        example: "2025-06-08T12:00:00Z"
+    required:
+      - id
+      - user_id
+      - type
+      - name
+      - url
+      - created_at
+      - updated_at
+  DocumentsResponse:
+    type: object
+    description: Paginated response containing a list of documents.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of document objects.
+        items:
+          $ref: "#/definitions/Document"
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: Documents retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  DocumentRequest:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - Listing
+          - Avatar
+          - Verification
+          - Report
+          - Messaging
+        description: The type of document request. Must be one of the specified values.
+      user_id:
+        type: string
+        description: The user's ID.
+      documents:
+        type: array
+        items:
+          type: object
+          properties:
+            content:
+              type: string
+              description: The content of the document.
+            name:
+              type: string
+              description: The name of the document.
+    required:
+      - type
+      - user_id
+      - documents
+  DocumentResponse:
+    type: object
+    description: Response containing a single document object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/Document"
+        description: The document object returned by the API.
+      toast:
+        type: string
+        example: Document uploaded successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  Booking:
+    type: object
+    properties:
+      id:
+        type: string
+        example: bkg_001
+      listing_id:
+        type: string
+        example: lst_101
+      user_id:
+        type: string
+        example: usr_201
+      check_in:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      check_out:
+        type: string
+        format: date-time
+        example: "2025-06-05T11:00:00Z"
+      amount:
+        type: number
+        format: float
+        example: 500
+      rating:
+        type: number
+        format: float
+        example: 4.5
+      days:
+        type: integer
+        example: 4
+      payment_id:
+        type: string
+        example: pay_001
+      status:
+        type: string
+        enum:
+          - pending
+          - accepted
+          - rejected
+          - cancelled
+          - completed
+          - awaiting_payment
+        example: pending
+      guests:
+        type: integer
+        example: 2
+  BookingsResponse:
+    type: object
+    description: Paginated response containing a list of bookings.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        type: array
+        description: List of booking objects.
+        items:
+          $ref: "#/definitions/Booking"
+        example:
+          - id: bkg_001
+            listing_id: lst_101
+            user_id: usr_201
+            check_in: "2025-06-01T14:00:00Z"
+            check_out: "2025-06-05T11:00:00Z"
+            amount: 500
+            rating: 4.5
+            days: 4
+            payment_id: pay_001
+            status: pending
+            guests: 2
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            description: Current page number
+            example: 1
+          limit:
+            type: integer
+            description: Number of items per page
+            example: 10
+          total:
+            type: integer
+            description: Total number of items
+            example: 25
+          pages:
+            type: integer
+            description: Total number of pages
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: Bookings retrieved successfully.
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  BookingRequest:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      user_id:
+        type: string
+      check_in:
+        type: string
+        format: date-time
+      check_out:
+        type: string
+        format: date-time
+      guests:
+        type: integer
+        format: int32
+        maxLength: 3
+        minimum: 1
+    required:
+      - listing_id
+      - user_id
+      - check_in
+      - check_out
+      - guests
+  BookingResponse:
+    type: object
+    description: Response containing a single booking object.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        $ref: "#/definitions/Booking"
+        description: The booking object returned by the API.
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: Booking created successfully.
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+  AcceptBookingRequest:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Friendly message to the guest
+    required:
+      - message
+  CancelBookingRequest:
+    type: object
+    properties:
+      reason:
+        type: string
+        enum:
+          - Change of travel plans
+          - Guest asked to cancel
+          - Guest did not show up
+          - Guest did not have required payment
+          - Accidental booking
+          - Other
+    required:
+      - reason
+  DashboardError:
+    type: object
+    properties:
+      status:
+        type: string
+        example: error
+      error:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 400
+          message:
+            type: string
+            example: Invalid request
+    required:
+      - status
+      - error
+  DashboardResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        example: ok
+      data:
+        type: object
+        description: Optional data payload for successful responses
+    required:
+      - status
+  BookingAdminUpdateRequest:
+    type: object
+    properties:
+      status:
+        type: string
+        enum:
+          - pending
+          - confirmed
+          - cancelled
+          - completed
+          - disputed
+      admin_notes:
+        type: string
+      refund_amount:
+        type: number
+        format: double
+    required:
+      - status
+  ListingAdminUpdateRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+        enum:
+          - active
+          - pending
+          - rejected
+          - removed
+      price:
+        type: number
+        format: double
+      max_guests:
+        type: integer
+      instant_book:
+        type: boolean
+      admin_notes:
+        type: string
+    required:
+      - title
+      - status
+  NotificationRequest:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      user_id:
+        type: string
+      type:
+        type: string
+        enum:
+          - info
+          - warning
+          - alert
+          - success
+      data:
+        type: object
+  SettingsUpdateRequest:
+    type: object
+    properties:
+      maintenance_mode:
+        type: boolean
+      feature_toggles:
+        type: object
+        additionalProperties:
+          type: boolean
+      notification_templates:
+        type: object
+        additionalProperties:
+          type: string
+  UserAdminUpdateRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      status:
+        type: string
+        enum:
+          - active
+          - suspended
+          - banned
+          - pending
+      role:
+        type: string
+        enum:
+          - user
+          - admin
+          - moderator
+      verified:
+        type: boolean
+    required:
+      - email
+  Location:
+    type: object
+    properties:
+      latitude:
+        type: number
+        format: double
+      longitude:
+        type: number
+        format: double
+  ListingSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      location:
+        $ref: "#/definitions/Location"
+      price:
+        type: number
+        format: double
+      available:
+        type: boolean
+      thumbnail:
+        type: string
+        format: uri
+      distance:
+        type: number
+        format: double
+      created_at:
+        type: string
+        format: date-time
+      max_guests:
+        type: integer
+        format: int32
+      rating:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      active:
+        type: boolean
+      amenities:
+        type: array
+        items:
+          type: string
+      cancellation_policy:
+        type: string
+      category:
+        type: object
+        properties:
+          name:
+            type: string
+          code:
+            type: string
+          description:
+            type: string
+  GetAllListingsResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/ListingSummary"
+      meta:
+        type: object
+        properties:
+          page:
+            type: integer
+            description: Current page number
+          limit:
+            type: integer
+            description: Number of items per page
+          total:
+            type: integer
+            description: Total number of items
+          pages:
+            type: integer
+            description: Total number of pages
+        required:
+          - page
+          - limit
+          - total
+          - pages
+    required:
+      - success
+      - data
+      - meta
+  Host:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      avatar:
+        type: string
+        format: uri
+      gender:
+        type: string
+      rating:
+        type: number
+        format: double
+  Address:
+    type: object
+    properties:
+      street:
+        type: string
+      city:
+        type: string
+      country:
+        type: string
+      postal_code:
+        type: string
+      province:
+        type: string
+      unit_number:
+        type: string
+      flag:
+        type: string
+    required:
+      - street
+      - city
+      - country
+      - postal_code
+  ListingRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      price:
+        type: number
+        format: double
+      thumbnail:
+        type: string
+        format: uri
+      max_guests:
+        type: integer
+        format: int32
+      instant_book:
+        type: boolean
+      photos:
+        type: array
+        items:
+          type: string
+          format: uri
+          minimum: 3
+        maxItems: 10
+      host:
+        $ref: "#/definitions/Host"
+      amenities:
+        type: array
+        items:
+          type: string
+        maxLength: 20
+      house_rules:
+        type: array
+        items:
+          type: string
+        maxLength: 5
+      cancellation_policy:
+        type: string
+        enum:
+          - No refunds
+          - 50% - 50% refund
+          - 100% - Full Refund
+      address:
+        $ref: "#/definitions/Address"
+      baggage_drop:
+        type: boolean
+        description: Baggage drop allowed by host so guests can drop off their bags first while they explore the city.
+        default: false
+      category:
+        type: object
+        properties:
+          name:
+            type: string
+          code:
+            type: string
+          description:
+            type: string
+    required:
+      - title
+      - description
+      - price
+      - thumbnail
+      - max_guests
+      - instant_book
+      - photos
+      - host
+      - amenities
+      - house_rules
+      - cancellation_policy
+      - address
+      - category
+  ListingResponse:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+        maxLength: 64
+      description:
+        type: string
+      location:
+        $ref: "#/definitions/Location"
+      price:
+        type: number
+        format: double
+        minimum: 10
+      available:
+        type: boolean
+      thumbnail:
+        type: string
+        format: uri
+      distance:
+        type: number
+        format: double
+      created_at:
+        type: string
+        format: date-time
+      max_guests:
+        type: integer
+        format: int32
+      rating:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      active:
+        type: boolean
+      amenities:
+        type: array
+        items:
+          type: string
+      cancellation_policy:
+        type: string
+      category:
+        type: object
+      photos:
+        type: array
+        items:
+          type: string
+          format: uri
+      host:
+        type: object
+      house_rules:
+        type: array
+        items:
+          type: string
+      updated_at:
+        type: string
+        format: date-time
+  CreateListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: "#/definitions/ListingResponse"
+    required:
+      - success
+      - data
+  AddressSuggestion:
+    type: object
+    properties:
+      address:
+        $ref: "#/definitions/Address"
+      description:
+        type: string
+      place_id:
+        type: string
+    required:
+      - address
+      - description
+      - place_id
+  AddressAutoCompleteResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/AddressSuggestion"
+      meta:
+        type: object
+        properties:
+          total:
+            type: integer
+            description: Total number of suggestions
+        required:
+          - total
+    required:
+      - success
+      - data
+      - meta
+  SearchListingsRequest:
+    type: object
+    properties:
+      location:
+        type: object
+        properties:
+          latitude:
+            type: number
+            format: double
+          longitude:
+            type: number
+            format: double
+          city:
+            type: string
+          country:
+            type: string
+      start_date:
+        type: string
+        format: date-time
+      end_date:
+        type: string
+        format: date-time
+      guests:
+        type: integer
+        format: int32
+      price_min:
+        type: number
+        format: double
+      price_max:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      category:
+        type: string
+      keywords:
+        type: string
+      gender:
+        type: string
+        description: Filter by host gender
+      page:
+        type: integer
+        format: int32
+      limit:
+        type: integer
+        format: int32
+  SearchListingSummary:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      price:
+        type: number
+        format: double
+      location:
+        $ref: "#/definitions/Location"
+      thumbnail:
+        type: string
+        format: uri
+      rating:
+        type: number
+        format: double
+      category:
+        type: object
+        properties:
+          name:
+            type: string
+          code:
+            type: string
+      available:
+        type: boolean
+      distance:
+        type: number
+        format: double
+      instant_book:
+        type: boolean
+      short_description:
+        type: string
+    required:
+      - id
+      - title
+      - price
+      - location
+      - thumbnail
+      - available
+  SearchListingsResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/SearchListingSummary"
+      meta:
+        type: object
+        properties:
+          page:
+            type: integer
+          limit:
+            type: integer
+          total:
+            type: integer
+          pages:
+            type: integer
+        required:
+          - page
+          - limit
+          - total
+          - pages
+    required:
+      - success
+      - data
+      - meta
+  GetListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: "#/definitions/ListingResponse"
+    required:
+      - success
+      - data
+  UpdateListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: "#/definitions/ListingResponse"
+    required:
+      - success
+      - data
+  DeleteListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      id:
+        type: string
+        description: The ID of the deleted listing
+    required:
+      - success
+      - id
+  ReportListingRequest:
+    type: object
+    required:
+      - reason
+      - reported_by
+    properties:
+      reason:
+        type: string
+        enum:
+          - INAPPROPRIATE
+          - MISLEADING
+          - SPAM
+          - OFFENSIVE
+          - OTHER
+      details:
+        type: string
+        maxLength: 500
+        description: Additional details about the report
+      reported_by:
+        type: string
+        description: User ID of the person reporting the listing
+  ReportListingResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      report_id:
+        type: string
+        description: The ID of the created report
+    required:
+      - success
+      - report_id
+  ListingWeatherResponse:
+    type: object
+    properties:
+      id:
+        type: string
+        example: listing_123
+      latitude:
+        type: number
+        format: float
+        example: 40.7128
+      longitude:
+        type: number
+        format: float
+        example: -74.006
+      timezone:
+        type: string
+        example: Toronto/Ontario
+      current:
+        type: object
+        properties:
+          date:
+            type: integer
+            format: int64
+            example: 1721253600
+          humidity:
+            type: integer
+            example: 65
+            description: Percentage (%)
+          wind_speed:
+            type: number
+            format: float
+            example: 13
+            description: km/h
+          feels_like:
+            type: number
+            format: float
+            example: 299.15
+            description: Celsius
+          temp:
+            type: number
+            format: float
+            example: 297.15
+            description: Celsius
+          visibility:
+            type: integer
+            example: 10000
+            description: Meters
+          air_quality:
+            type: integer
+            example: 36
+      weather-forecast:
+        type: array
+        items:
+          type: object
+          properties:
+            date:
+              type: integer
+              format: int64
+              example: 1750128000
+            temp:
+              type: number
+              format: float
+              example: 297.15
+  GetListingWeatherResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: "#/definitions/ListingWeatherResponse"
+    required:
+      - success
+      - data
+  Message:
+    type: object
+    properties:
+      id:
+        type: string
+      listing_id:
+        type: string
+      booking_id:
+        type: string
+      message:
+        type: string
+      type:
+        type: string
+        maxLength: 32
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  GetAllMessagesResponse:
+    type: object
+    description: Paginated response containing a list of messages.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        type: array
+        description: List of message objects.
+        items:
+          $ref: "#/definitions/Message"
+        example:
+          - id: msg_001
+            listing_id: lst_101
+            booking_id: bkg_001
+            message: Hello!
+            type: guest
+            created_at: "2025-06-01T14:00:00Z"
+            updated_at: "2025-06-01T14:00:00Z"
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            description: Current page number
+            example: 1
+          limit:
+            type: integer
+            description: Number of items per page
+            example: 10
+          total:
+            type: integer
+            description: Total number of items
+            example: 25
+          pages:
+            type: integer
+            description: Total number of pages
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: Messages retrieved successfully.
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  MessageRequest:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      booking_id:
+        type: string
+      message:
+        type: string
+      type:
+        type: string
+        maxLength: 32
+    required:
+      - message
+  MessageResponse:
+    type: object
+    description: Response containing a single message object.
+    properties:
+      success:
+        type: boolean
+        description: Indicates if the request was successful.
+        example: true
+      data:
+        $ref: "#/definitions/Message"
+        description: The message object returned by the API.
+      toast:
+        type: string
+        description: Optional toast message for the client UI.
+        example: Message sent successfully.
+      error:
+        type: string
+        description: Error message, if any.
+        example: null
+    required:
+      - success
+      - data
+  PaymentRequest:
+    type: object
+    properties:
+      booking_id:
+        type: string
+      amount:
+        type: number
+        format: double
+      currency:
+        type: string
+        maxLength: 3
+      payment_method:
+        type: string
+        maxLength: 32
+      payment_status:
+        type: string
+        maxLength: 32
+      payment_date:
+        type: string
+        format: date-time
+  Payment:
+    type: object
+    description: Payment object for a booking transaction.
+    properties:
+      id:
+        type: string
+        example: pay_001
+      booking_id:
+        type: string
+        example: bkg_001
+      amount:
+        type: number
+        example: 100
+      currency:
+        type: string
+        maxLength: 3
+        example: USD
+      method:
+        type: string
+        maxLength: 32
+        example: card
+      status:
+        type: string
+        maxLength: 32
+        example: completed
+      date:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      created_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      receipt_url:
+        type: string
+        format: uri
+        example: https://example.com/receipt/pay_001.pdf
+      description:
+        type: string
+        example: Payment for booking bkg_001
+      refunded:
+        type: boolean
+        example: false
+      fee:
+        type: number
+        example: 2.5
+      payer_id:
+        type: string
+        example: usr_201
+    required:
+      - id
+      - booking_id
+      - amount
+      - currency
+      - method
+      - status
+      - date
+      - created_at
+      - updated_at
+  PaymentResponse:
+    type: object
+    description: Response containing a single payment object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/Payment"
+        description: The payment object returned by the API.
+      toast:
+        type: string
+        example: Payment created successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  PaymentMethod:
+    type: object
+    description: Payment method object for a user.
+    properties:
+      id:
+        type: string
+        example: pm_001
+      user_id:
+        type: string
+        example: usr_201
+      method:
+        type: string
+        example: card
+      type:
+        type: string
+        example: credit
+      status:
+        type: string
+        example: active
+      date:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      created_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        example: "2025-06-01T14:00:00Z"
+      last4:
+        type: string
+        example: 4242
+      brand:
+        type: string
+        example: Visa
+      exp_month:
+        type: integer
+        example: 12
+      exp_year:
+        type: integer
+        example: 2027
+      is_default:
+        type: boolean
+        example: true
+    required:
+      - id
+      - user_id
+      - method
+      - type
+      - status
+      - date
+      - created_at
+      - updated_at
+  PaymentMethodsResponse:
+    type: object
+    description: Paginated response containing a list of payment methods.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/PaymentMethod"
+        description: List of payment methods.
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: Payment methods retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  PaymentMethodRequest:
+    type: object
+    properties:
+      user_id:
+        type: string
+      payment_method:
+        type: string
+        maxLength: 32
+      payment_method_type:
+        type: string
+        maxLength: 32
+      payment_method_status:
+        type: string
+        maxLength: 32
+      payment_method_date:
+        type: string
+        format: date-time
+    required:
+      - user_id
+      - payment_method
+  PaymentMethodResponse:
+    type: object
+    description: Response containing a single payment method object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/PaymentMethod"
+        description: The payment method object returned by the API.
+      toast:
+        type: string
+        example: Payment method added successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  PaymentsResponse:
+    type: object
+    description: Paginated response containing a list of payments.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of payment objects.
+        items:
+          $ref: "#/definitions/Payment"
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: Payments retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  ReviewEdit:
+    type: object
+    properties:
+      version:
+        type: integer
+      updated_at:
+        type: string
+        format: date-time
+      changes:
+        type: object
+        additionalProperties: true
+    required:
+      - version
+      - updated_at
+      - changes
+  Review:
+    type: object
+    properties:
+      id:
+        type: string
+      author:
+        type: string
+        description: The user writing the review
+      target:
+        type: string
+        description: The user or listing being reviewed
+      type:
+        type: string
+        enum:
+          - user
+          - listing
+        description: Type of entity being reviewed
+      category:
+        type: string
+      overall_rating:
+        type: number
+      comment:
+        type: string
+      emoji_sentiment:
+        type: string
+      metrics:
+        type: object
+        additionalProperties: true
+      booking_id:
+        type: string
+      listing_id:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      status:
+        type: string
+      version:
+        type: integer
+      edit_history:
+        type: array
+        items:
+          $ref: "#/definitions/ReviewEdit"
+    required:
+      - id
+      - author
+      - target
+      - type
+      - category
+      - overall_rating
+      - metrics
+      - created_at
+      - updated_at
+      - status
+      - version
+      - edit_history
+  ReviewsResponse:
+    type: object
+    description: Paginated response containing a list of reviews.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/Review"
+        description: List of reviews.
+      meta:
+        type: object
+        description: Pagination metadata.
+        properties:
+          page:
+            type: integer
+            example: 1
+          limit:
+            type: integer
+            example: 10
+          total:
+            type: integer
+            example: 25
+          pages:
+            type: integer
+            example: 3
+        required:
+          - page
+          - limit
+          - total
+          - pages
+      toast:
+        type: string
+        example: Reviews retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - meta
+  ReviewRequest:
+    type: object
+    required:
+      - author
+      - target
+      - type
+      - category
+      - overall_rating
+      - metrics
+    properties:
+      author:
+        type: string
+        description: The user writing the review
+      target:
+        type: string
+        description: The user or listing being reviewed
+      type:
+        type: string
+        enum:
+          - user
+          - listing
+        description: Type of entity being reviewed
+      category:
+        type: string
+        description: Review context/category (e.g., couchsurf, workspace)
+      overall_rating:
+        type: number
+        minimum: 1
+        maximum: 5
+      comment:
+        type: string
+        maxLength: 1000
+      emoji_sentiment:
+        type: string
+        enum:
+          - 👍
+          - 👎
+          - 👍👍
+      metrics:
+        type: object
+        description: Category-specific metrics (flexible)
+        additionalProperties: true
+      booking_id:
+        type: string
+        description: Associated booking ID if applicable
+  CreateReviewResponse:
+    type: object
+    description: Response containing the created review object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/Review"
+        description: The created review object.
+      toast:
+        type: string
+        example: Review created successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  GetReviewResponse:
+    type: object
+    description: Response containing a single review object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/Review"
+        description: The review object returned by the API.
+      toast:
+        type: string
+        example: Review retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  DeleteReviewResponse:
+    type: object
+    description: Response confirming review deletion.
+    properties:
+      success:
+        type: boolean
+        example: true
+      id:
+        type: string
+        description: The ID of the deleted review.
+      toast:
+        type: string
+        example: Review deleted successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - id
+  ReviewUpdateRequest:
+    type: object
+    properties:
+      comment:
+        type: string
+        maxLength: 1000
+      overall_rating:
+        type: number
+        minimum: 1
+        maximum: 5
+      emoji_sentiment:
+        type: string
+        enum:
+          - 👍
+          - 👎
+          - 👍👍
+      metrics:
+        type: object
+        description: Category-specific metrics (flexible)
+        additionalProperties: true
+  UpdateReviewResponse:
+    type: object
+    description: Response containing the updated review object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/Review"
+        description: The updated review object.
+      toast:
+        type: string
+        example: Review updated successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  ReportReviewRequest:
+    type: object
+    required:
+      - reason
+      - reported_by
+    properties:
+      reason:
+        type: string
+        enum:
+          - INAPPROPRIATE
+          - MISLEADING
+          - SPAM
+          - OFFENSIVE
+          - OTHER
+      details:
+        type: string
+        maxLength: 500
+        description: Additional details about the report
+      reported_by:
+        type: string
+        description: User ID of the person reporting the review
+  ReportReviewResponse:
+    type: object
+    description: Response confirming review report.
+    properties:
+      success:
+        type: boolean
+        example: true
+      id:
+        type: string
+        description: The ID of the reported review.
+      toast:
+        type: string
+        example: Review reported successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - id
+  ReviewResponseRequest:
+    type: object
+    required:
+      - comment
+    properties:
+      comment:
+        type: string
+        maxLength: 1000
+        description: The response text
+  RespondToReviewResponse:
+    type: object
+    description: Response confirming a response was added to a review.
+    properties:
+      success:
+        type: boolean
+        example: true
+      id:
+        type: string
+        description: The ID of the review responded to.
+      toast:
+        type: string
+        example: Response added to review successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - id
+  Gender:
+    type: string
+    enum:
+      - Male
+      - Female
+      - Non-binary
+      - Transgender
+      - Genderqueer
+      - Genderfluid
+      - Agender
+      - Two-spirit
+      - Bigender
+      - Other
+      - Prefer not to say
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      bio:
+        type: string
+      avatar:
+        type: string
+        format: uri
+      phone:
+        type: string
+      birthday:
+        type: string
+        format: date-time
+      city:
+        type: string
+      country:
+        type: string
+        maxItems: 10
+      interests:
+        type: array
+        items:
+          type: string
+        maxItems: 10
+      languages:
+        type: array
+        items:
+          type: string
+        maxItems: 10
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      gender:
+        $ref: "#/definitions/Gender"
+  LoginResponse:
+    type: object
+    description: Response for user login (email/phone).
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/User"
+        description: The logged in user object.
+      token:
+        type: string
+        description: JWT access token for the user.
+      toast:
+        type: string
+        example: Login successful.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - token
+  UserResponse:
+    type: object
+    description: Response containing a single user object.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/User"
+        description: The user object returned by the API.
+      toast:
+        type: string
+        example: User registered successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  AvatarResponse:
+    type: object
+    description: Response containing the updated user avatar.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: object
+        properties:
+          avatar:
+            type: string
+            format: uri
+            description: The updated avatar URL
+        description: The updated avatar object
+      toast:
+        type: string
+        example: Avatar updated successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  VerificationData:
+    type: object
+    properties:
+      verified:
+        type: boolean
+        description: Whether the verification was successful
+        example: true
+      method:
+        type: string
+        description: Verification method (e.g., 'email', 'phone')
+        example: email
+      contact:
+        type: string
+        description: The contact info verified
+        example: user@example.com
+  VerificationResponse:
+    type: object
+    description: Response for email/phone verification (initiate/confirm).
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/VerificationData"
+        description: Verification result
+      toast:
+        type: string
+        example: Verification successful.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  IdentityVerificationData:
+    type: object
+    properties:
+      verification_id:
+        type: string
+        description: ID of the verification request
+        example: verif_12345
+      status:
+        type: string
+        description: Status of the identity verification
+        example: pending
+      submitted_at:
+        type: string
+        format: date-time
+        description: Submission timestamp
+        example: "2025-06-16T12:00:00Z"
+  IdentityVerificationResponse:
+    type: object
+    description: Response for biometric/identity verification.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/IdentityVerificationData"
+        description: Identity verification result
+      toast:
+        type: string
+        example: Identity verification submitted.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  UserListingsResponse:
+    type: object
+    description: Response containing all listings for a user.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of listings for the user
+        items:
+          $ref: "#/definitions/ListingSummary"
+      toast:
+        type: string
+        example: Listings retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  SocialAuthResponse:
+    type: object
+    description: Response for user social authentication.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        $ref: "#/definitions/User"
+        description: The authenticated user object.
+      token:
+        type: string
+        description: JWT access token for the user.
+      toast:
+        type: string
+        example: Social authentication successful.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+      - token
+  WishlistItem:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      tag:
+        type: string
+        maxLength: 32
+      thumbnail:
+        type: string
+        format: uri
+    required:
+      - listing_id
+  WishlistListResponse:
+    type: object
+    description: Response containing all wishlist items for a user.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of wishlist items for the user
+        items:
+          $ref: "#/definitions/WishlistItem"
+      toast:
+        type: string
+        example: Wishlist retrieved successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  WishlistRequest:
+    type: object
+    properties:
+      listing_id:
+        type: string
+      tag:
+        type: string
+        maxLength: 32
+      thumbnail:
+        type: string
+        format: uri
+    required:
+      - listing_id
+  WishlistResponse:
+    type: object
+    description: Response containing the user's wishlist after add/delete.
+    properties:
+      success:
+        type: boolean
+        example: true
+      data:
+        type: array
+        description: List of wishlist items for the user
+        items:
+          $ref: "#/definitions/WishlistItem"
+      toast:
+        type: string
+        example: Wishlist updated successfully.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - data
+  WishlistTagDeleteResponse:
+    type: object
+    description: Response confirming tag deletion from wishlist.
+    properties:
+      success:
+        type: boolean
+        example: true
+      tag:
+        type: string
+        description: The tag that was deleted
+      toast:
+        type: string
+        example: Tag deleted from wishlist.
+      error:
+        type: string
+        example: null
+    required:
+      - success
+      - tag
+securityDefinitions:
+  googleApiKey:
+    in: header
+    name: api_key
+    type: apiKey
+  jwtAuth:
+    in: header
+    name: Authorization
+    type: apiKey
