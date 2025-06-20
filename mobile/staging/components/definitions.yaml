@@ -433,6 +433,69 @@ definitions:
       updated_at:
         type: string
         format: date-time
+  ListingWeatherResponse:
+    type: object
+    properties:
+      id:
+        type: string
+        example: listing_123
+      latitude:
+        type: number
+        format: float
+        example: 40.7128
+      longitude:
+        type: number
+        format: float
+        example: -74.0060
+      timezone:
+        type: string
+        example: Toronto/Ontario
+      current:
+        type: object
+        properties:
+          date:
+            type: integer
+            format: int64
+            example: 1721253600
+          humidity:
+            type: integer
+            example: 65
+            description: Percentage (%)
+          wind_speed:
+            type: number
+            format: float
+            example: 13
+            description: km/h
+          feels_like:
+            type: number
+            format: float
+            example: 299.15
+            description: Celsius
+          temp:
+            type: number
+            format: float
+            example: 297.15
+            description: Celsius
+          visibility:
+            type: integer
+            example: 10000
+            description: Meters
+          air_quality:
+            type: integer
+            example: 36
+      weather-forecast:
+        type: array
+        items:
+          type: object
+          properties:
+            date:
+              type: integer
+              format: int64
+              example: 1750128000
+            temp:
+              type: number
+              format: float
+              example: 297.15
   Booking:
     type: object
     properties:
@@ -1604,6 +1667,18 @@ definitions:
         type: string
       data:
         $ref: '#/definitions/ListingResponse'
+    required:
+      - success
+      - data
+  GetListingWeatherResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      toast:
+        type: string
+      data:
+        $ref: '#/definitions/ListingWeatherResponse'
     required:
       - success
       - data
