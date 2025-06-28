@@ -22,13 +22,13 @@ Generates documentation for the specified environment.
 (Planned) Cleans up obsolete preview environments.
 
 ## Workflows
-### `docs-preview.yml`
+### `preview.yml`
 Generates and deploys preview documentation for pull requests (triggered by repository_dispatch from api-specs).
 
-### `staging-deploy.yml`
+### `staging.yml`
 Generates and deploys staging documentation for the `develop` branch. Also cleans up preview PR folders after merge.
 
-### `prod-deploy.yml`
+### `prod.yml`
 Generates and deploys production documentation for the `master` branch.
 
 ## Setup
