@@ -41,7 +41,7 @@ You can test workflows locally using tools like [act](https://github.com/nektos/
 
 ## Secrets
 - `GITHUB_TOKEN`: Auto-injected by GitHub Actions.
-- `API_DOCS_REPO_PAT`: Required for cross-repo PR creation from api-specs to api-docs.
+- `OPENAPI_CICD_WORKFLOW_TOKEN`: Required for cross-repo PR creation from api-specs to api-docs.
 
 ## Versioning Support
 (Planned) Add logic to handle versioning for specs and documentation.

@@ -55,7 +55,7 @@ jobs:
         if: env.API_SPECS_PR != ''
         uses: peter-evans/create-or-update-comment@v2
         with:
-          token: ${{ secrets.API_SPECS_REPO_PAT }}
+          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           repository: inspiredtechinc/api-specs
           issue-number: ${{ env.API_SPECS_PR }}
           body: |
