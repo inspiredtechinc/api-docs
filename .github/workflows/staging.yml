@@ -1,0 +1,46 @@
+name: Docs Staging Deploy
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'specs/services/*.yaml'
+      - 'specs/gateways/*.yaml'
+      - 'specs/gateways/config.json'
+
+jobs:
+  deploy-staging-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate docs
+        env:
+          BUILD_ENV: staging
+        run: node scripts/generate-docs.js
+
+      - name: Deploy to gh_pages (staging)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public/generated/staging
+
+      - name: Trigger staging deploy in api-specs
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.API_SPECS_REPO_PAT }}" \
+            https://api.github.com/repos/inspiredtechinc/api-specs/dispatches \
+            -d '{
+              "event_type": "deploy-staging-gateway",
+              "client_payload": {
+                "source": "api-docs",
+                "branch": "develop",
+                "sha": "${{ github.sha }}"
+              }
+            }'

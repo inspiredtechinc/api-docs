@@ -1,0 +1,63 @@
+name: Docs Preview
+
+on:
+  pull_request:
+    branches-ignore:
+      - develop
+      - main
+    paths:
+      - 'specs/services/*.yaml'
+      - 'specs/gateways/*.yaml'
+      - 'specs/gateways/config.json'
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate docs
+        env:
+          BUILD_ENV: ${{ github.head_ref }}
+        run: node scripts/generate-docs.js
+
+      - name: Deploy to gh_pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public/generated/${{ github.head_ref }}
+
+      - name: Add sticky comment to api-docs PR
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: inspiredtechinc/api-docs
+          issue-number: ${{ github.event.number }}
+          body: |
+            🚀 **Preview Documentation**
+            Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html)
+
+      - name: Extract api-specs PR number from PR body
+        id: extract
+        run: |
+          PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q ".body")
+          API_SPECS_PR=$(echo "$PR_BODY" | grep -o 'api-specs-pr: [0-9]*' | awk '{print $2}')
+          echo "API_SPECS_PR=$API_SPECS_PR" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add sticky comment to api-specs PR
+        if: env.API_SPECS_PR != ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.API_SPECS_REPO_PAT }}
+          repository: inspiredtechinc/api-specs
+          issue-number: ${{ env.API_SPECS_PR }}
+          body: |
+            🚀 **Preview Documentation**
+            Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html)
