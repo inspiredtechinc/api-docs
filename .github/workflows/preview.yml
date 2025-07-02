@@ -2,9 +2,6 @@ name: Docs Preview
 
 on:
   pull_request:
-    branches-ignore:
-      - develop
-      - main
     paths:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
