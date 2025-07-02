@@ -130,14 +130,14 @@ function generateDocs() {
     const env = getEnvironment();
     ensureEnvironmentDirectory(env);
 
-    const gatewaySpecs = fs.readdirSync(path.join(specsDir, 'gateway'));
+    const gatewaySpecs = fs.readdirSync(path.join(specsDir, 'gateways'));
     const serviceSpecs = fs.readdirSync(path.join(specsDir, 'services'));
     const allSpecs = [...gatewaySpecs.map(spec => ({ type: 'gateway', spec })), ...serviceSpecs.map(spec => ({ type: 'service', spec }))];
 
     const environmentContent = [];
 
     allSpecs.forEach(({ type, spec }) => {
-      const specPath = path.join(specsDir, type === 'gateway' ? 'gateway' : 'services', spec);
+      const specPath = path.join(specsDir, type === 'gateway' ? 'gateways' : 'services', spec);
       const baseName = path.basename(spec, path.extname(spec));
 
       // Parse spec
