@@ -22,11 +22,11 @@ function generateSwaggerDocs(swaggerSpec, outputPath) {
 <html>
 <head>
   <title>Swagger UI</title>
-  <link rel="stylesheet" type="text/css" href="/assets/swagger-ui.css">
+  <link rel="stylesheet" type="text/css" href="/api-docs/assets/swagger-ui.css">
 </head>
 <body>
   <div id="swagger-ui"></div>
-  <script src="/assets/swagger-ui-bundle.js"></script>
+  <script src="/api-docs/assets/swagger-ui-bundle.js"></script>
   <script>
     const spec = ${JSON.stringify(swaggerSpec)};
     const ui = SwaggerUIBundle({
@@ -130,14 +130,14 @@ function generateDocs() {
     const env = getEnvironment();
     ensureEnvironmentDirectory(env);
 
-    const gatewaySpecs = fs.readdirSync(path.join(specsDir, 'gateway'));
-    const serviceSpecs = fs.readdirSync(path.join(specsDir, 'services'));
+    const gatewaySpecs = fs.readdirSync(path.join(specsDir, 'gateways')).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+    const serviceSpecs = fs.readdirSync(path.join(specsDir, 'services')).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
     const allSpecs = [...gatewaySpecs.map(spec => ({ type: 'gateway', spec })), ...serviceSpecs.map(spec => ({ type: 'service', spec }))];
 
     const environmentContent = [];
 
     allSpecs.forEach(({ type, spec }) => {
-      const specPath = path.join(specsDir, type === 'gateway' ? 'gateway' : 'services', spec);
+      const specPath = path.join(specsDir, type === 'gateway' ? 'gateways' : 'services', spec);
       const baseName = path.basename(spec, path.extname(spec));
 
       // Parse spec

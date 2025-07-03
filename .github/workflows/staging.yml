@@ -24,6 +24,19 @@ jobs:
           BUILD_ENV: staging
         run: node scripts/generate-docs.js
 
+      - name: Clean up preview folders
+        run: |
+          if [ -d public/generated ]; then
+            cd public/generated
+            for d in *; do
+              if [ "$d" != "staging" ] && [ "$d" != "prod" ]; then
+                echo "Deleting preview folder: $d"
+                rm -rf "$d"
+              fi
+            done
+            cd ../..
+          fi
+
       - name: Deploy to gh_pages (staging)
         uses: peaceiris/actions-gh-pages@v3
         with:
