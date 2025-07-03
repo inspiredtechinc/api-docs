@@ -22,11 +22,11 @@ function generateSwaggerDocs(swaggerSpec, outputPath) {
 <html>
 <head>
   <title>Swagger UI</title>
-  <link rel="stylesheet" type="text/css" href="/assets/swagger-ui.css">
+  <link rel="stylesheet" type="text/css" href="/api-docs/assets/swagger-ui.css">
 </head>
 <body>
   <div id="swagger-ui"></div>
-  <script src="/assets/swagger-ui-bundle.js"></script>
+  <script src="/api-docs/assets/swagger-ui-bundle.js"></script>
   <script>
     const spec = ${JSON.stringify(swaggerSpec)};
     const ui = SwaggerUIBundle({
