@@ -130,8 +130,8 @@ function generateDocs() {
     const env = getEnvironment();
     ensureEnvironmentDirectory(env);
 
-    const gatewaySpecs = fs.readdirSync(path.join(specsDir, 'gateways'));
-    const serviceSpecs = fs.readdirSync(path.join(specsDir, 'services'));
+    const gatewaySpecs = fs.readdirSync(path.join(specsDir, 'gateways')).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+    const serviceSpecs = fs.readdirSync(path.join(specsDir, 'services')).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
     const allSpecs = [...gatewaySpecs.map(spec => ({ type: 'gateway', spec })), ...serviceSpecs.map(spec => ({ type: 'service', spec }))];
 
     const environmentContent = [];
