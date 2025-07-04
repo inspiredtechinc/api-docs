@@ -2,9 +2,6 @@ name: Docs Preview
 
 on:
   pull_request:
-    branches-ignore:
-      - develop
-      - main
     paths:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
@@ -30,7 +27,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: public/generated/${{ github.head_ref }}
+          publish_dir: public
 
       - name: Add sticky comment to api-docs PR
         uses: peter-evans/create-or-update-comment@v2
@@ -55,7 +52,7 @@ jobs:
         if: env.API_SPECS_PR != ''
         uses: peter-evans/create-or-update-comment@v2
         with:
-          token: ${{ secrets.API_SPECS_REPO_PAT }}
+          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           repository: inspiredtechinc/api-specs
           issue-number: ${{ env.API_SPECS_PR }}
           body: |

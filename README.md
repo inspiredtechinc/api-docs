@@ -12,6 +12,7 @@ This repository contains scripts and workflows for generating and deploying Open
 - `scripts/`: Contains scripts for generating and cleaning documentation.
 - `public/`: Contains assets and generated documentation.
 - `.github/workflows/`: Contains GitHub Actions workflows for CI/CD.
+- `specs/`: Contains OpenAPI specs copied from the api-specs repo.
 
 ## Scripts
 ### `generate-docs.js`
@@ -21,13 +22,13 @@ Generates documentation for the specified environment.
 (Planned) Cleans up obsolete preview environments.
 
 ## Workflows
-### `docs-preview.yml`
-Generates and deploys preview documentation for pull requests.
+### `preview.yml`
+Generates and deploys preview documentation for pull requests (triggered by repository_dispatch from api-specs).
 
-### `staging-deploy.yml`
-Generates and deploys staging documentation for the `develop` branch.
+### `staging.yml`
+Generates and deploys staging documentation for the `develop` branch. Also cleans up preview PR folders after merge.
 
-### `prod-deploy.yml`
+### `prod.yml`
 Generates and deploys production documentation for the `master` branch.
 
 ## Setup
@@ -40,6 +41,7 @@ You can test workflows locally using tools like [act](https://github.com/nektos/
 
 ## Secrets
 - `GITHUB_TOKEN`: Auto-injected by GitHub Actions.
+- `OPENAPI_CICD_WORKFLOW_TOKEN`: Required for cross-repo PR creation from api-specs to api-docs.
 
 ## Versioning Support
 (Planned) Add logic to handle versioning for specs and documentation.

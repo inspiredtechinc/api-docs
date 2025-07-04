@@ -24,17 +24,30 @@ jobs:
           BUILD_ENV: staging
         run: node scripts/generate-docs.js
 
+      - name: Clean up preview folders
+        run: |
+          if [ -d public/generated ]; then
+            cd public/generated
+            for d in *; do
+              if [ "$d" != "staging" ] && [ "$d" != "prod" ]; then
+                echo "Deleting preview folder: $d"
+                rm -rf "$d"
+              fi
+            done
+            cd ../..
+          fi
+
       - name: Deploy to gh_pages (staging)
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: public/generated/staging
+          publish_dir: public
 
       - name: Trigger staging deploy in api-specs
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.API_SPECS_REPO_PAT }}" \
+            -H "Authorization: token ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}" \
             https://api.github.com/repos/inspiredtechinc/api-specs/dispatches \
             -d '{
               "event_type": "deploy-staging-gateway",
