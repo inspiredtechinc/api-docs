@@ -27,7 +27,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: public/generated/${{ github.head_ref }}
+          publish_dir: public
 
       - name: Add sticky comment to api-docs PR
         uses: peter-evans/create-or-update-comment@v2
