@@ -3,6 +3,9 @@ info:
   title: Dashboard Service API
   description: Sample API for dashboard service
   version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: https://dashboard.project-x.com/api/v1
     description: Production server for dashboard service
