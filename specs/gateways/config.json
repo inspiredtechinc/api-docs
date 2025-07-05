@@ -1,8 +1,9 @@
 {
+  "apiName": "project-x-api",
   "gateways": {
     "app": {
       "name": "App API Gateway",
-      "description": "API Gateway for client-facing application endpoints",
+      "description": "API Gateway for client-facing application endpoints.",
       "version": "1.0.0",
       "hosts": [
         { "url": "https://app-staging-gateway-8ua0taf7.uc.gateway.dev/api/v1", "description": "Staging" },
