@@ -24,6 +24,17 @@ jobs:
           BUILD_ENV: prod
         run: node scripts/generate-docs.js
 
+      - name: Merge existing gh-pages content (preserve all envs)
+        run: |
+          git clone --depth=1 --branch gh-pages https://github.com/inspiredtechinc/api-docs.git gh-pages-tmp || true
+          mkdir -p public/generated
+          if [ -d gh-pages-tmp/generated ]; then
+            cp -r gh-pages-tmp/generated/* public/generated/ || true
+          fi
+          # Overwrite prod with latest build
+          cp -r public/generated/prod/* public/generated/prod/ 2>/dev/null || true
+          rm -rf gh-pages-tmp
+
       - name: Deploy to gh_pages (prod)
         uses: peaceiris/actions-gh-pages@v3
         with:
