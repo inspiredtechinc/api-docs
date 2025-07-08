@@ -23,6 +23,17 @@ jobs:
           BUILD_ENV: ${{ github.head_ref }}
         run: node scripts/generate-docs.js
 
+      - name: Merge existing gh-pages content (preserve all envs)
+        run: |
+          git clone --depth=1 --branch gh-pages https://github.com/inspiredtechinc/api-docs.git gh-pages-tmp || true
+          mkdir -p public/generated
+          if [ -d gh-pages-tmp/generated ]; then
+            cp -r gh-pages-tmp/generated/* public/generated/ || true
+          fi
+          # Overwrite this preview env with latest build
+          cp -r public/generated/${{ github.head_ref }}/* public/generated/${{ github.head_ref }}/ 2>/dev/null || true
+          rm -rf gh-pages-tmp
+
       - name: Deploy to gh_pages
         uses: peaceiris/actions-gh-pages@v3
         with:
