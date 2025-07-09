@@ -60,10 +60,13 @@ function ensureEnvironmentDirectory(env) {
 }
 
 function generateMainIndex() {
-  const existingEnvironments = fs.readdirSync(generatedDir).filter(dir => {
-    const envPath = path.join(generatedDir, dir);
-    return fs.statSync(envPath).isDirectory() && fs.existsSync(path.join(envPath, 'index.html'));
-  });
+  const generatedDir = path.join(publicDir, 'generated');
+  const existingEnvironments = fs.existsSync(generatedDir)
+    ? fs.readdirSync(generatedDir).filter(dir => {
+        const envPath = path.join(generatedDir, dir);
+        return fs.statSync(envPath).isDirectory() && fs.existsSync(path.join(envPath, 'index.html'));
+      })
+    : [];
 
   const mainIndexHtml = `<!DOCTYPE html>
 <html>
@@ -123,6 +126,12 @@ function generateMainIndex() {
 </html>`;
 
   fs.writeFileSync(path.join(publicDir, 'index.html'), mainIndexHtml);
+}
+
+// Support --index-only mode
+if (process.argv.includes('--index-only')) {
+  generateMainIndex();
+  process.exit(0);
 }
 
 function generateDocs() {
