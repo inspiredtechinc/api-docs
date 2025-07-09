@@ -59,6 +59,17 @@ function ensureEnvironmentDirectory(env) {
   }
 }
 
+function getEnvDisplayName(env) {
+  if (env === 'prod') return 'Production';
+  if (env === 'staging') return 'Staging';
+  if (env === 'preview' || env.startsWith('preview-')) return `Preview: ${env}`;
+  if (env === 'main') return 'Main';
+  if (env === 'develop') return 'Develop';
+  // For all other preview/feature branches
+  if (env !== 'prod' && env !== 'staging') return `Preview: ${env}`;
+  return env.charAt(0).toUpperCase() + env.slice(1);
+}
+
 function generateMainIndex() {
   const generatedDir = path.join(publicDir, 'generated');
   const existingEnvironments = fs.existsSync(generatedDir)
@@ -118,7 +129,7 @@ function generateMainIndex() {
   <div class="content">
     ${existingEnvironments.map(env => `
       <div class="card">
-        <a href="generated/${env}/index.html">${env.toUpperCase()} Environment</a>
+        <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
       </div>
     `).join('\n')}
   </div>
