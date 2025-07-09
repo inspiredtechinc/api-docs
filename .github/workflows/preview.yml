@@ -18,10 +18,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Set BUILD_ENV (map develop to staging)
+        run: |
+          if [ "${{ github.head_ref }}" = "develop" ]; then
+            echo "BUILD_ENV=staging" >> $GITHUB_ENV
+          else
+            echo "BUILD_ENV=${{ github.head_ref }}" >> $GITHUB_ENV
+          fi
+
       - name: Generate docs
-        env:
-          BUILD_ENV: ${{ github.head_ref }}
         run: node scripts/generate-docs.js
+        env:
+          BUILD_ENV: ${{ env.BUILD_ENV }}
 
       - name: Merge existing gh-pages content (preserve all envs)
         run: |
