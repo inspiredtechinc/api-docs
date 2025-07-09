@@ -34,6 +34,9 @@ jobs:
           cp -r public/generated/${{ github.head_ref }}/* public/generated/${{ github.head_ref }}/ 2>/dev/null || true
           rm -rf gh-pages-tmp
 
+      - name: Regenerate main index.html
+        run: node scripts/generate-docs.js --index-only
+
       - name: Deploy to gh_pages
         uses: peaceiris/actions-gh-pages@v3
         with:

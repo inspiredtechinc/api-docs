@@ -35,6 +35,9 @@ jobs:
           cp -r public/generated/prod/* public/generated/prod/ 2>/dev/null || true
           rm -rf gh-pages-tmp
 
+      - name: Regenerate main index.html
+        run: node scripts/generate-docs.js --index-only
+
       - name: Deploy to gh_pages (prod)
         uses: peaceiris/actions-gh-pages@v3
         with:

@@ -48,6 +48,9 @@ jobs:
             cd ../..
           fi
 
+      - name: Regenerate main index.html
+        run: node scripts/generate-docs.js --index-only
+
       - name: Deploy to gh_pages (staging)
         uses: peaceiris/actions-gh-pages@v3
         with:
