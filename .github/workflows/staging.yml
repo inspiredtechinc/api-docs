@@ -7,7 +7,6 @@ on:
     paths:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
-      - 'specs/gateways/config.json'
 
 jobs:
   deploy-staging-docs:
