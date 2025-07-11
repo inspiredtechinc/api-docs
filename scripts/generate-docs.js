@@ -80,51 +80,85 @@ function generateMainIndex() {
     : [];
 
   const mainIndexHtml = `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Documentation - Card View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', system-ui, Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f9;
-      color: #333;
+      background: linear-gradient(120deg, #181c24 0%, #232b3a 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
     }
     header {
-      background-color: #4CAF50;
-      color: white;
-      padding: 1rem;
+      background: #111827;
+      color: #f9fafb;
+      padding: 2rem 1rem 1rem 1rem;
       text-align: center;
+      box-shadow: 0 2px 8px rgba(17,24,39,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.2em;
     }
     .content {
-      margin: 1rem auto;
-      max-width: 800px;
+      margin: 2rem auto;
+      max-width: 1000px;
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 2rem;
+      justify-content: center;
     }
     .card {
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      padding: 1rem;
-      background-color: white;
-      flex: 1 1 calc(33.333% - 1rem);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border: none;
+      border-radius: 18px;
+      padding: 2rem 1.5rem;
+      background: #232b3a;
+      box-shadow: 0 4px 24px rgba(17,24,39,0.18);
+      min-width: 260px;
+      max-width: 320px;
+      flex: 1 1 260px;
       text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 8px 32px rgba(17,24,39,0.28);
+      background: #1f2533;
     }
     .card a {
-      color: #4CAF50;
+      color: #60a5fa;
       text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
     }
     .card a:hover {
       text-decoration: underline;
+      color: #93c5fd;
+    }
+    footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin: 2rem 0 1rem 0;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>API Documentation</h1>
+    <div class="logo">API Documentation</div>
+    <div style="font-size:1.1rem;opacity:0.85;">Browse environments and view your OpenAPI/Swagger docs</div>
   </header>
   <div class="content">
     ${existingEnvironments.map(env => `
@@ -133,6 +167,146 @@ function generateMainIndex() {
       </div>
     `).join('\n')}
   </div>
+  <footer>
+    &copy; ${new Date().getFullYear()} InspiredTech &mdash; All rights reserved.
+  </footer>
+</body>
+</html>`;
+
+  fs.writeFileSync(path.join(publicDir, 'index.html'), mainIndexHtml);
+}
+
+// Ensure assets are copied only once
+if (!fs.existsSync(assetsDir)) {
+  fs.mkdirSync(assetsDir, { recursive: true });
+  fs.copyFileSync(path.join(swaggerUiDistPath, 'swagger-ui.css'), path.join(assetsDir, 'swagger-ui.css'));
+  fs.copyFileSync(path.join(swaggerUiDistPath, 'swagger-ui-bundle.js'), path.join(assetsDir, 'swagger-ui-bundle.js'));
+}
+
+function getEnvironment() {
+  const env = process.env.BUILD_ENV || 'preview';
+  console.warn(`Using environment: ${env}`);
+  return env;
+}
+
+function ensureEnvironmentDirectory(env) {
+  const envDir = path.join(generatedDir, env);
+  if (!fs.existsSync(envDir)) {
+    fs.mkdirSync(envDir, { recursive: true });
+  }
+}
+
+function getEnvDisplayName(env) {
+  if (env === 'prod') return 'Production';
+  if (env === 'staging') return 'Staging';
+  if (env === 'preview' || env.startsWith('preview-')) return `Preview: ${env}`;
+  if (env === 'main') return 'Main';
+  if (env === 'develop') return 'Develop';
+  // For all other preview/feature branches
+  if (env !== 'prod' && env !== 'staging') return `Preview: ${env}`;
+  return env.charAt(0).toUpperCase() + env.slice(1);
+}
+
+function generateMainIndex() {
+  const generatedDir = path.join(publicDir, 'generated');
+  const existingEnvironments = fs.existsSync(generatedDir)
+    ? fs.readdirSync(generatedDir).filter(dir => {
+        const envPath = path.join(generatedDir, dir);
+        return fs.statSync(envPath).isDirectory() && fs.existsSync(path.join(envPath, 'index.html'));
+      })
+    : [];
+
+  const mainIndexHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation - Card View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(120deg, #181c24 0%, #232b3a 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+    header {
+      background: #111827;
+      color: #f9fafb;
+      padding: 2rem 1rem 1rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(17,24,39,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.2em;
+    }
+    .content {
+      margin: 2rem auto;
+      max-width: 1000px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+    }
+    .card {
+      border: none;
+      border-radius: 18px;
+      padding: 2rem 1.5rem;
+      background: #232b3a;
+      box-shadow: 0 4px 24px rgba(17,24,39,0.18);
+      min-width: 260px;
+      max-width: 320px;
+      flex: 1 1 260px;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 8px 32px rgba(17,24,39,0.28);
+      background: #1f2533;
+    }
+    .card a {
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .card a:hover {
+      text-decoration: underline;
+      color: #93c5fd;
+    }
+    footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin: 2rem 0 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">API Documentation</div>
+    <div style="font-size:1.1rem;opacity:0.85;">Browse environments and view your OpenAPI/Swagger docs</div>
+  </header>
+  <div class="content">
+    ${existingEnvironments.map(env => `
+      <div class="card">
+        <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
+      </div>
+    `).join('\n')}
+  </div>
+  <footer>
+    &copy; ${new Date().getFullYear()} InspiredTech &mdash; All rights reserved.
+  </footer>
 </body>
 </html>`;
 
@@ -193,53 +367,105 @@ function generateDocs() {
 
     // Generate index page for the environment
     const envIndexHtml = `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${env.toUpperCase()} API Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', system-ui, Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f9;
-      color: #333;
+      background: linear-gradient(120deg, #181c24 0%, #232b3a 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
     }
     header {
-      background-color: #4CAF50;
-      color: white;
-      padding: 1rem;
+      background: #111827;
+      color: #f9fafb;
+      padding: 2rem 1rem 1rem 1rem;
       text-align: center;
+      box-shadow: 0 2px 8px rgba(17,24,39,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.2em;
     }
     .content {
-      margin: 1rem auto;
-      max-width: 800px;
+      margin: 2rem auto;
+      max-width: 900px;
+      background: #232b3a;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(17,24,39,0.18);
+      padding: 2rem 2rem 1.5rem 2rem;
     }
-    .content ul {
+    ul {
       list-style-type: none;
       padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
     }
-    .content ul li {
+    li {
+      background: #2a2e3b;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(17,24,39,0.06);
+      padding: 1.2rem 1.5rem;
       margin: 0.5rem 0;
+      min-width: 220px;
+      max-width: 320px;
+      flex: 1 1 220px;
+      text-align: left;
+      transition: box-shadow 0.15s;
     }
-    .content ul li a {
-      color: #4CAF50;
+    li:hover {
+      box-shadow: 0 6px 24px rgba(17,24,39,0.13);
+    }
+    li a {
+      color: #60a5fa;
       text-decoration: none;
-      margin-right: 1rem;
+      font-weight: 600;
+      font-size: 1.08rem;
+      margin-right: 1.2rem;
     }
-    .content ul li a:hover {
+    li a:hover {
       text-decoration: underline;
+      color: #93c5fd;
+    }
+    .meta {
+      font-size: 0.92rem;
+      color: #888;
+      margin-left: 0.5rem;
+    }
+    @media (max-width: 600px) {
+      .content { padding: 1rem; }
+      ul { flex-direction: column; gap: 0.5rem; }
+      li { min-width: 0; max-width: 100%; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>${env.toUpperCase()} API Documentation</h1>
+    <div class="logo">${env.toUpperCase()} API Documentation</div>
+    <div style="font-size:1.1rem;opacity:0.85;">Browse all gateway and service specs for this environment</div>
   </header>
   <div class="content">
     <ul>
       ${environmentContent.join('\n')}
     </ul>
   </div>
+  <footer style="text-align:center;color:#888;font-size:0.95rem;margin:2rem 0 1rem 0;">
+    &copy; ${new Date().getFullYear()} InspiredTech &mdash; All rights reserved.
+  </footer>
 </body>
 </html>`;
 
