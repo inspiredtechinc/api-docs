@@ -11,7 +11,7 @@
       "basePath": "/api/v1",
       "services": [
         "user-service",
-        "list-service",
+        "listing-service",
         "booking-service",
         "review-service",
         "wishlist-service",
