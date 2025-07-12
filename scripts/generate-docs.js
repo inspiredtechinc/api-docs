@@ -429,6 +429,21 @@ function generateDocs() {
       color: #93c5fd;
       font-size: 1.3rem;
       font-weight: 600;
+      text-align: center;
+    }
+    .back-link {
+      text-align: center;
+      margin: 2rem 0 0.5rem 0;
+    }
+    .back-link a {
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.08rem;
+    }
+    .back-link a:hover {
+      text-decoration: underline;
+      color: #93c5fd;
     }
     ul {
       list-style-type: none;
@@ -491,6 +506,9 @@ function generateDocs() {
     <ul>
       ${servicesContent.join('\n')}
     </ul>
+    <div class="back-link">
+      <a href="/api-docs/index.html">&larr; Back to Home</a>
+    </div>
   </div>
   <footer style="text-align:center;color:#888;font-size:0.95rem;margin:2rem 0 1rem 0;">
     &copy; ${new Date().getFullYear()} InspiredTech &mdash; All rights reserved.
