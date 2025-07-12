@@ -1,7 +1,7 @@
 name: Docs Production Deploy
 
 on:
-  push:
+  pull_request:
     branches:
       - main
     paths:
@@ -33,6 +33,17 @@ jobs:
           fi
           # Overwrite prod with latest build
           cp -r public/generated/prod/* public/generated/prod/ 2>/dev/null || true
+          # Remove all pr-* preview folders
+          if [ -d public/generated ]; then
+            cd public/generated
+            for d in pr-*; do
+              if [ -d "$d" ]; then
+                echo "Deleting preview folder: $d"
+                rm -rf "$d"
+              fi
+            done
+            cd ../..
+          fi
           rm -rf gh-pages-tmp
 
       - name: Regenerate main index.html
