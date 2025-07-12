@@ -17,16 +17,24 @@ function generateRedocDocs(specPath, redocOutputPath) {
   execSync(`npx @redocly/cli build-docs "${specPath}" -o "${redocOutputPath}"`);
 }
 
+function getRelativeAssetsPath(outputHtmlPath) {
+  // Compute the relative path from the HTML file to the assets directory
+  const rel = path.relative(path.dirname(outputHtmlPath), assetsDir);
+  // Always use forward slashes for URLs
+  return rel.split(path.sep).join('/');
+}
+
 function generateSwaggerDocs(swaggerSpec, outputPath) {
+  const assetsPath = getRelativeAssetsPath(outputPath);
   const swaggerHtml = `<!DOCTYPE html>
 <html>
 <head>
   <title>Swagger UI</title>
-  <link rel="stylesheet" type="text/css" href="/api-docs/assets/swagger-ui.css">
+  <link rel="stylesheet" type="text/css" href="${assetsPath}/swagger-ui.css">
 </head>
 <body>
   <div id="swagger-ui"></div>
-  <script src="/api-docs/assets/swagger-ui-bundle.js"></script>
+  <script src="${assetsPath}/swagger-ui-bundle.js"></script>
   <script>
     const spec = ${JSON.stringify(swaggerSpec)};
     const ui = SwaggerUIBundle({
