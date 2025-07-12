@@ -343,6 +343,10 @@ function generateDocs() {
 
     const environmentContent = [];
 
+    // Separate gateways and services into different sections
+    const gatewaysContent = [];
+    const servicesContent = [];
+
     allSpecs.forEach(({ type, spec }) => {
       const specPath = path.join(specsDir, type === 'gateway' ? 'gateways' : 'services', spec);
       const baseName = path.basename(spec, path.extname(spec));
@@ -369,11 +373,16 @@ function generateDocs() {
       }
       generateSwaggerDocs(swaggerSpec, path.join(swaggerDir, `${baseName}.html`));
 
-      // Add to environment-specific index
-        environmentContent.push(`<li>${baseName} (${type}) - <a href="redoc/${baseName}.html">Redoc</a> | <a href="swagger/${baseName}.html">Swagger UI</a> <span style="font-size: smaller; color: #888;">(Last generated: ${lastGeneratedDate})</span></li>`);
+      // Add to the correct section
+      const entry = `<li>${baseName} (${type}) - <a href="redoc/${baseName}.html">Redoc</a> | <a href="swagger/${baseName}.html">Swagger UI</a> <span style="font-size: smaller; color: #888;">(Last generated: ${lastGeneratedDate})</span></li>`;
+      if (type === 'gateway') {
+        gatewaysContent.push(entry);
+      } else {
+        servicesContent.push(entry);
+      }
     });
 
-    // Generate index page for the environment
+    // Generate index page for the environment with separate sections
     const envIndexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -414,10 +423,17 @@ function generateDocs() {
       box-shadow: 0 4px 24px rgba(17,24,39,0.18);
       padding: 2rem 2rem 1.5rem 2rem;
     }
+    h2 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.7rem;
+      color: #93c5fd;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
     ul {
       list-style-type: none;
       padding: 0;
-      margin: 0;
+      margin: 0 0 1.5rem 0;
       display: flex;
       flex-wrap: wrap;
       gap: 1.5rem;
@@ -467,8 +483,13 @@ function generateDocs() {
     <div style="font-size:1.1rem;opacity:0.85;">Browse all gateway and service specs for this environment</div>
   </header>
   <div class="content">
+    <h2>Gateways</h2>
     <ul>
-      ${environmentContent.join('\n')}
+      ${gatewaysContent.join('\n')}
+    </ul>
+    <h2>Services</h2>
+    <ul>
+      ${servicesContent.join('\n')}
     </ul>
   </div>
   <footer style="text-align:center;color:#888;font-size:0.95rem;margin:2rem 0 1rem 0;">
