@@ -9,10 +9,6 @@ generated/
 public/generated/
 public/index.html
 
-# Generated gateway specs
-specs/gateways/*.yml
-specs/gateways/*.yaml
-
 # Temporary files
 *.tmp
 *.temp
