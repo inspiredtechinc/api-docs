@@ -87,6 +87,12 @@ function generateMainIndex() {
       })
     : [];
 
+  function getEnvBadge(env) {
+    if (env === 'prod' || env === 'production' || env === 'main') return '<span class="badge badge-prod">PROD</span>';
+    if (env === 'staging' || env === 'develop') return '<span class="badge badge-staging">STAGING</span>';
+    return '<span class="badge badge-preview">PREVIEW</span>';
+  }
+
   const mainIndexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,6 +145,7 @@ function generateMainIndex() {
       text-align: center;
       transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
       cursor: pointer;
+      position: relative;
     }
     .card:hover {
       transform: translateY(-6px) scale(1.03);
@@ -155,6 +162,18 @@ function generateMainIndex() {
       text-decoration: underline;
       color: #93c5fd;
     }
+    .badge {
+      display: inline-block;
+      margin-left: 0.5em;
+      padding: 0.2em 0.7em;
+      border-radius: 8px;
+      font-size: 0.85em;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .badge-prod { background: #10b981; color: #fff; }
+    .badge-staging { background: #f59e42; color: #fff; }
+    .badge-preview { background: #6366f1; color: #fff; }
     footer {
       text-align: center;
       color: #6b7280;
@@ -172,6 +191,7 @@ function generateMainIndex() {
     ${existingEnvironments.map(env => `
       <div class="card">
         <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
+        ${getEnvBadge(env)}
       </div>
     `).join('\n')}
   </div>
@@ -224,6 +244,12 @@ function generateMainIndex() {
       })
     : [];
 
+  function getEnvBadge(env) {
+    if (env === 'prod' || env === 'production' || env === 'main') return '<span class="badge badge-prod">PROD</span>';
+    if (env === 'staging' || env === 'develop') return '<span class="badge badge-staging">STAGING</span>';
+    return '<span class="badge badge-preview">PREVIEW</span>';
+  }
+
   const mainIndexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -276,6 +302,7 @@ function generateMainIndex() {
       text-align: center;
       transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
       cursor: pointer;
+      position: relative;
     }
     .card:hover {
       transform: translateY(-6px) scale(1.03);
@@ -292,6 +319,18 @@ function generateMainIndex() {
       text-decoration: underline;
       color: #93c5fd;
     }
+    .badge {
+      display: inline-block;
+      margin-left: 0.5em;
+      padding: 0.2em 0.7em;
+      border-radius: 8px;
+      font-size: 0.85em;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .badge-prod { background: #10b981; color: #fff; }
+    .badge-staging { background: #f59e42; color: #fff; }
+    .badge-preview { background: #6366f1; color: #fff; }
     footer {
       text-align: center;
       color: #6b7280;
@@ -309,6 +348,7 @@ function generateMainIndex() {
     ${existingEnvironments.map(env => `
       <div class="card">
         <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
+        ${getEnvBadge(env)}
       </div>
     `).join('\n')}
   </div>
@@ -373,8 +413,11 @@ function generateDocs() {
       }
       generateSwaggerDocs(swaggerSpec, path.join(swaggerDir, `${baseName}.html`));
 
-      // Add to the correct section
-      const entry = `<li>${baseName} (${type}) - <a href="redoc/${baseName}.html">Redoc</a> | <a href="swagger/${baseName}.html">Swagger UI</a> <span style="font-size: smaller; color: #888;">(Last generated: ${lastGeneratedDate})</span></li>`;
+      // Format timestamp as human-readable
+      const humanTimestamp = new Date(lastGeneratedDate).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+      // Inline Redoc | Swagger links for better appearance
+      const entry = `<li><span class="spec-name">${baseName}</span> <span class="doc-links"><a href="redoc/${baseName}.html">Redoc</a> <span class="divider">|</span> <a href="swagger/${baseName}.html">Swagger</a></span> <span class="meta">Timestamp: ${humanTimestamp}</span></li>`;
       if (type === 'gateway') {
         gatewaysContent.push(entry);
       } else {
@@ -460,35 +503,63 @@ function generateDocs() {
       box-shadow: 0 2px 8px rgba(17,24,39,0.06);
       padding: 1.2rem 1.5rem;
       margin: 0.5rem 0;
-      min-width: 220px;
+      min-width: 180px;
       max-width: 320px;
-      flex: 1 1 220px;
+      flex: 1 1 180px;
       text-align: left;
       transition: box-shadow 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
     }
-    li:hover {
-      box-shadow: 0 6px 24px rgba(17,24,39,0.13);
+    li .spec-name {
+      font-weight: 600;
+      font-size: 1.08rem;
+      margin-bottom: 0.3rem;
+      color: #e5e7eb;
+      display: block;
     }
-    li a {
+    /* Inline doc links styling */
+    .doc-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3em;
+      margin-left: 0.2em;
+    }
+    .doc-links a {
       color: #60a5fa;
       text-decoration: none;
       font-weight: 600;
       font-size: 1.08rem;
-      margin-right: 1.2rem;
+      margin: 0 0.1em;
+      display: inline-block;
     }
-    li a:hover {
+    .doc-links a:hover {
       text-decoration: underline;
       color: #93c5fd;
+    }
+    .divider {
+      color: #888;
+      font-size: 1.08rem;
+      margin: 0 0.1em;
+      user-select: none;
     }
     .meta {
       font-size: 0.92rem;
       color: #888;
-      margin-left: 0.5rem;
+      margin-left: 0;
+      display: block;
+      margin-top: 0.4rem;
     }
     @media (max-width: 600px) {
-      .content { padding: 1rem; }
+      .content { padding: 0.5rem; }
       ul { flex-direction: column; gap: 0.5rem; }
-      li { min-width: 0; max-width: 100%; }
+      li { min-width: 0; max-width: 100%; padding: 0.8rem 0.5rem; }
+      .logo { font-size: 1.1rem; }
+      h2 { font-size: 1rem; }
+      li .spec-name { font-size: 1rem; }
+      .doc-links { font-size: 1rem; }
     }
   </style>
 </head>
