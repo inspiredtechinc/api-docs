@@ -5,9 +5,7 @@ on:
     branches:
       - develop
     paths:
-      - 'specs/services/*.yaml'
-      - 'specs/gateways/*.yaml'
-      - 'specs/gateways/config.json'
+      - '.lastbuild'
 
 jobs:
   preview:
