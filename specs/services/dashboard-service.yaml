@@ -1,0 +1,53 @@
+openapi: 3.0.0
+info:
+  title: Dashboard Service API
+  description: Sample API for dashboard service
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://dashboard.project-x.com/api/v1
+    description: Production server for dashboard service
+tags:
+  - name: Dashboard
+    description: Endpoints for the admin dashboard service
+x-google-backend:
+  address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
+  path_translation: APPEND_PATH_TO_ADDRESS
+paths:
+  /dashboard/heartbeat:
+    get:
+      summary: Health check for dashboard service
+      operationId: getDashboardHeartbeat
+      tags:
+        - Dashboard
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+        '502':
+          description: Bad gateway
+          
+components:
+  securitySchemes:
+    jwtAuth:
+      type: apiKey
+      name: Authorization
+      in: header
+    googleApiKey:
+      type: apiKey
+      name: api_key
+      in: header

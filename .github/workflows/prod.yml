@@ -1,0 +1,71 @@
+name: Docs Production Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'specs/services/*.yaml'
+      - 'specs/gateways/*.yaml'
+      - 'specs/gateways/config.json'
+
+jobs:
+  deploy-prod-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate docs
+        env:
+          BUILD_ENV: prod
+        run: node scripts/generate-docs.js
+
+      - name: Merge existing gh-pages content (preserve all envs)
+        run: |
+          git clone --depth=1 --branch gh-pages https://github.com/inspiredtechinc/api-docs.git gh-pages-tmp || true
+          mkdir -p public/generated
+          if [ -d gh-pages-tmp/generated ]; then
+            cp -r gh-pages-tmp/generated/* public/generated/ || true
+          fi
+          # Overwrite prod with latest build
+          cp -r public/generated/prod/* public/generated/prod/ 2>/dev/null || true
+          # Remove all pr-* preview folders
+          if [ -d public/generated ]; then
+            cd public/generated
+            for d in pr-*; do
+              if [ -d "$d" ]; then
+                echo "Deleting preview folder: $d"
+                rm -rf "$d"
+              fi
+            done
+            cd ../..
+          fi
+          rm -rf gh-pages-tmp
+
+      - name: Regenerate main index.html
+        run: node scripts/generate-docs.js --index-only
+
+      - name: Deploy to gh_pages (prod)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public
+
+      - name: Trigger production deploy in api-specs
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}" \
+            https://api.github.com/repos/inspiredtechinc/api-specs/dispatches \
+            -d '{
+              "event_type": "deploy-prod-gateway",
+              "client_payload": {
+                "source": "api-docs",
+                "branch": "main",
+                "sha": "${{ github.sha }}"
+              }
+            }'

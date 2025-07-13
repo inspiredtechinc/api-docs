@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# Generated documentation
+generated/
+public/generated/
+public/index.html
+
+# Temporary files
+*.tmp
+*.temp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+.venv

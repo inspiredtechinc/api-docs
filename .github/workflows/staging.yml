@@ -1,0 +1,73 @@
+name: Docs Staging Deploy
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'specs/services/*.yaml'
+      - 'specs/gateways/*.yaml'
+
+jobs:
+  deploy-staging-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate docs
+        env:
+          BUILD_ENV: staging
+        run: node scripts/generate-docs.js
+
+      - name: Merge existing gh-pages content (preserve all envs)
+        run: |
+          git clone --depth=1 --branch gh-pages https://github.com/inspiredtechinc/api-docs.git gh-pages-tmp || true
+          mkdir -p public/generated
+          if [ -d gh-pages-tmp/generated ]; then
+            cp -r gh-pages-tmp/generated/* public/generated/ || true
+          fi
+          # Overwrite staging with latest build
+          cp -r public/generated/staging/* public/generated/staging/ 2>/dev/null || true
+          rm -rf gh-pages-tmp
+
+      - name: Clean up preview folders (keep only staging and prod)
+        run: |
+          if [ -d public/generated ]; then
+            cd public/generated
+            for d in *; do
+              if [ "$d" != "staging" ] && [ "$d" != "prod" ]; then
+                echo "Deleting preview folder: $d"
+                rm -rf "$d"
+              fi
+            done
+            cd ../..
+          fi
+
+      - name: Regenerate main index.html
+        run: node scripts/generate-docs.js --index-only
+
+      - name: Deploy to gh_pages (staging)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public
+          force: true
+
+      - name: Trigger staging deploy in api-specs
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}" \
+            https://api.github.com/repos/inspiredtechinc/api-specs/dispatches \
+            -d '{
+              "event_type": "deploy-staging-gateway",
+              "client_payload": {
+                "source": "api-docs",
+                "branch": "develop",
+                "sha": "${{ github.sha }}"
+              }
+            }'

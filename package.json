@@ -1,0 +1,21 @@
+{
+  "name": "api-docs",
+  "version": "1.0.0",
+  "description": "Centralized API documentation generation and hosting",
+  "main": "scripts/generate-docs.js",
+  "scripts": {
+    "generate-docs": "BUILD_ENV=$BUILD_ENV node scripts/generate-docs.js",
+    "docs": "BUILD_ENV=$BUILD_ENV node scripts/generate-docs.js",
+    "preview": "npx http-server ./public -p 8080",
+    "clean": "rm -rf public/generated && rm -rf public/index.html",
+    "test": "npm run generate-docs && npm run preview",
+    "envs": "BUILD_ENV=preview npm run generate-docs && BUILD_ENV=staging npm run generate-docs && BUILD_ENV=prod npm run generate-docs"
+  },
+  "dependencies": {
+    "@redocly/cli": "^1.34.3",
+    "openapi-schema-validator": "^12.1.3",
+    "redoc-cli": "^0.13.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-dist": "^4.15.5"
+  }
+}
