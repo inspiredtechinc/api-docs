@@ -4,8 +4,15 @@ on:
   pull_request:
     branches:
       - develop
+      - main
     paths:
-      - '.lastbuild'
+      - 'specs/services/*.yaml'
+      - 'specs/gateways/*.yaml'
+      - 'specs/gateways/config.json'
+
+concurrency:
+  group: docs-preview-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   preview:
