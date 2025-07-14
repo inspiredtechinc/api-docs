@@ -9,6 +9,7 @@ on:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
       - 'specs/gateways/config.json'
+      - '.lastbuild'
 
 concurrency:
   group: docs-preview-${{ github.ref }}
