@@ -1,12 +1,18 @@
+
 name: Docs Staging Deploy
 
 on:
-  pull_request:
+  push:
     branches:
       - develop
     paths:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
+      - 'specs/gateways/config.json'
+      - 'specs/services/*.yml'
+      - 'specs/gateways/*.yml'
+      - '.lastbuild'
+
 
 jobs:
   deploy-staging-docs:
