@@ -174,6 +174,12 @@ function generateMainIndex() {
     .badge-prod { background: #10b981; color: #fff; }
     .badge-staging { background: #f59e42; color: #fff; }
     .badge-preview { background: #6366f1; color: #fff; }
+    .timestamp {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #a1a1aa;
+    }
     footer {
       text-align: center;
       color: #6b7280;
@@ -192,6 +198,7 @@ function generateMainIndex() {
       <div class="card">
         <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
         ${getEnvBadge(env)}
+        <span class="timestamp">Last generated: ${new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
       </div>
     `).join('\n')}
   </div>
@@ -331,6 +338,12 @@ function generateMainIndex() {
     .badge-prod { background: #10b981; color: #fff; }
     .badge-staging { background: #f59e42; color: #fff; }
     .badge-preview { background: #6366f1; color: #fff; }
+    .timestamp {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #a1a1aa;
+    }
     footer {
       text-align: center;
       color: #6b7280;
@@ -349,6 +362,7 @@ function generateMainIndex() {
       <div class="card">
         <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
         ${getEnvBadge(env)}
+        <span class="timestamp">Last generated: ${new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
       </div>
     `).join('\n')}
   </div>
