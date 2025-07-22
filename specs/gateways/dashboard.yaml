@@ -1327,7 +1327,7 @@ paths:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
       x-codegen-request-body-name: action
-  /dashboard/reviews/listing/{id}:
+  /dashboard/listings/{id}/reviews:
     get:
       tags:
         - review
@@ -1402,7 +1402,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-  /dashboard/reviews/user/{id}:
+  /dashboard/users/{id}/reviews:
     get:
       tags:
         - review
