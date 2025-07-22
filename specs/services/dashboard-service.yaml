@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: project-x-api-dashboard.
-  description: API for Project X dashboard..
+  description: API for Project X dashboard...
   termsOfService: https://www.inspiredtech.ca/terms
   contact:
     name: Inspried Tech
