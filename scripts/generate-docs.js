@@ -70,9 +70,9 @@ function ensureEnvironmentDirectory(env) {
 function getEnvDisplayName(env) {
   if (env === 'prod') return 'Production';
   if (env === 'staging') return 'Staging';
+  if (env === 'main') return 'Staging (Main)';  // UPDATED: main branch maps to staging
   if (env === 'preview' || env.startsWith('preview-')) return `Preview: ${env}`;
-  if (env === 'main') return 'Main';
-  if (env === 'develop') return 'Develop';
+  if (env === 'develop') return 'Develop (Legacy)';  // Legacy branch
   // For all other preview/feature branches
   if (env !== 'prod' && env !== 'staging') return `Preview: ${env}`;
   return env.charAt(0).toUpperCase() + env.slice(1);
@@ -88,172 +88,9 @@ function generateMainIndex() {
     : [];
 
   function getEnvBadge(env) {
-    if (env === 'prod' || env === 'production' || env === 'main') return '<span class="badge badge-prod">PROD</span>';
-    if (env === 'staging' || env === 'develop') return '<span class="badge badge-staging">STAGING</span>';
-    return '<span class="badge badge-preview">PREVIEW</span>';
-  }
-
-  const mainIndexHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Documentation - Card View</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', system-ui, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(120deg, #181c24 0%, #232b3a 100%);
-      color: #e5e7eb;
-      min-height: 100vh;
-    }
-    header {
-      background: #111827;
-      color: #f9fafb;
-      padding: 2rem 1rem 1rem 1rem;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(17,24,39,0.18);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .logo {
-      font-size: 2.2rem;
-      font-weight: 700;
-      letter-spacing: -1px;
-      margin-bottom: 0.2em;
-    }
-    .content {
-      margin: 2rem auto;
-      max-width: 1000px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      justify-content: center;
-    }
-    .card {
-      border: none;
-      border-radius: 18px;
-      padding: 2rem 1.5rem;
-      background: #232b3a;
-      box-shadow: 0 4px 24px rgba(17,24,39,0.18);
-      min-width: 260px;
-      max-width: 320px;
-      flex: 1 1 260px;
-      text-align: center;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
-      cursor: pointer;
-      position: relative;
-    }
-    .card:hover {
-      transform: translateY(-6px) scale(1.03);
-      box-shadow: 0 8px 32px rgba(17,24,39,0.28);
-      background: #1f2533;
-    }
-    .card a {
-      color: #60a5fa;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
-    .card a:hover {
-      text-decoration: underline;
-      color: #93c5fd;
-    }
-    .badge {
-      display: inline-block;
-      margin-left: 0.5em;
-      padding: 0.2em 0.7em;
-      border-radius: 8px;
-      font-size: 0.85em;
-      font-weight: 600;
-      letter-spacing: 1px;
-    }
-    .badge-prod { background: #10b981; color: #fff; }
-    .badge-staging { background: #f59e42; color: #fff; }
-    .badge-preview { background: #6366f1; color: #fff; }
-    .timestamp {
-      display: block;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #a1a1aa;
-    }
-    footer {
-      text-align: center;
-      color: #6b7280;
-      font-size: 0.95rem;
-      margin: 2rem 0 1rem 0;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="logo">API Documentation</div>
-    <div style="font-size:1.1rem;opacity:0.85;">Browse environments and view your OpenAPI/Swagger docs</div>
-  </header>
-  <div class="content">
-    ${existingEnvironments.map(env => `
-      <div class="card">
-        <a href="generated/${env}/index.html">${getEnvDisplayName(env)} Environment</a>
-        ${getEnvBadge(env)}
-        <span class="timestamp">Last generated: ${new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
-      </div>
-    `).join('\n')}
-  </div>
-  <footer>
-    &copy; ${new Date().getFullYear()} InspiredTech &mdash; All rights reserved.
-  </footer>
-</body>
-</html>`;
-
-  fs.writeFileSync(path.join(publicDir, 'index.html'), mainIndexHtml);
-}
-
-// Ensure assets are copied only once
-if (!fs.existsSync(assetsDir)) {
-  fs.mkdirSync(assetsDir, { recursive: true });
-  fs.copyFileSync(path.join(swaggerUiDistPath, 'swagger-ui.css'), path.join(assetsDir, 'swagger-ui.css'));
-  fs.copyFileSync(path.join(swaggerUiDistPath, 'swagger-ui-bundle.js'), path.join(assetsDir, 'swagger-ui-bundle.js'));
-}
-
-function getEnvironment() {
-  const env = process.env.BUILD_ENV || 'preview';
-  console.warn(`Using environment: ${env}`);
-  return env;
-}
-
-function ensureEnvironmentDirectory(env) {
-  const envDir = path.join(generatedDir, env);
-  if (!fs.existsSync(envDir)) {
-    fs.mkdirSync(envDir, { recursive: true });
-  }
-}
-
-function getEnvDisplayName(env) {
-  if (env === 'prod') return 'Production';
-  if (env === 'staging') return 'Staging';
-  if (env === 'preview' || env.startsWith('preview-')) return `Preview: ${env}`;
-  if (env === 'main') return 'Main';
-  if (env === 'develop') return 'Develop';
-  // For all other preview/feature branches
-  if (env !== 'prod' && env !== 'staging') return `Preview: ${env}`;
-  return env.charAt(0).toUpperCase() + env.slice(1);
-}
-
-function generateMainIndex() {
-  const generatedDir = path.join(publicDir, 'generated');
-  const existingEnvironments = fs.existsSync(generatedDir)
-    ? fs.readdirSync(generatedDir).filter(dir => {
-        const envPath = path.join(generatedDir, dir);
-        return fs.statSync(envPath).isDirectory() && fs.existsSync(path.join(envPath, 'index.html'));
-      })
-    : [];
-
-  function getEnvBadge(env) {
-    if (env === 'prod' || env === 'production' || env === 'main') return '<span class="badge badge-prod">PROD</span>';
-    if (env === 'staging' || env === 'develop') return '<span class="badge badge-staging">STAGING</span>';
+    // UPDATED: Fixed environment mapping - main maps to staging, only prod/production for PROD badge
+    if (env === 'prod' || env === 'production') return '<span class="badge badge-prod">PROD</span>';
+    if (env === 'staging' || env === 'main' || env === 'develop') return '<span class="badge badge-staging">STAGING</span>';
     return '<span class="badge badge-preview">PREVIEW</span>';
   }
 

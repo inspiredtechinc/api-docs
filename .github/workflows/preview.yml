@@ -3,8 +3,7 @@ name: Docs Preview
 on:
   pull_request:
     branches:
-      - develop
-      - main
+      - main  # UPDATED: Focus on main branch per new environment mapping
     paths:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
@@ -26,12 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Set BUILD_ENV (map develop to staging)
+      - name: Set BUILD_ENV (updated for new environment mapping)
         run: |
-          if [ "${{ github.head_ref }}" = "develop" ]; then
+          # UPDATED: Map main branch PRs to staging environment
+          if [ "${{ github.base_ref }}" = "main" ]; then
             echo "BUILD_ENV=staging" >> $GITHUB_ENV
           else
-            echo "BUILD_ENV=${{ github.head_ref }}" >> $GITHUB_ENV
+            echo "BUILD_ENV=preview" >> $GITHUB_ENV
           fi
 
       - name: Generate docs

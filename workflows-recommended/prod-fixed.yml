@@ -1,0 +1,53 @@
+name: Docs Production Deploy
+
+on:
+  push:  # FIXED: Changed from pull_request to push
+    branches:
+      - main
+    paths:
+      - 'specs/services/*.yaml'
+      - 'specs/gateways/*.yaml'
+      - 'specs/gateways/config.json'
+      - 'specs/services/*.yml'
+      - 'specs/gateways/*.yml'
+
+jobs:
+  deploy-prod-docs:
+    runs-on: ubuntu-latest
+    environment: production  # Add environment protection
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensure full history for proper diff
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate docs
+        env:
+          BUILD_ENV: prod
+        run: node scripts/generate-docs.js
+
+      - name: Deploy to production hosting
+        env:
+          DEPLOYMENT_ENV: prod
+        run: |
+          # Your production deployment logic here
+          echo "Deploying docs to production..."
+
+      - name: Trigger production gateway deploy
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}" \
+            https://api.github.com/repos/inspiredtechinc/api-specs/dispatches \
+            -d '{
+              "event_type": "deploy-prod-gateway",
+              "client_payload": {
+                "source": "api-docs",
+                "branch": "main",
+                "sha": "${{ github.sha }}",
+                "docs_deployed": true
+              }
+            }'

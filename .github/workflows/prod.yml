@@ -1,13 +1,24 @@
 name: Docs Production Deploy
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:  # CRITICAL FIX: Changed from pull_request to push
+    tags:
+      - 'v*'  # Tag-based production deployment per new environment mapping
     paths:
       - 'specs/services/*.yaml'
       - 'specs/gateways/*.yaml'
       - 'specs/gateways/config.json'
+      - 'specs/services/*.yml'
+      - 'specs/gateways/*.yml'
+  
+  repository_dispatch:
+    types: [deploy-prod-docs]
+  
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag to deploy (e.g., v1.2.3)'
+        required: false
 
 jobs:
   deploy-prod-docs:
