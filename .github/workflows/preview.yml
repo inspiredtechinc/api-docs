@@ -46,8 +46,11 @@ jobs:
           if [ -d gh-pages-tmp/generated ]; then
             cp -r gh-pages-tmp/generated/* public/generated/ || true
           fi
-          # Overwrite this preview env with latest build
-          cp -r public/generated/${{ github.head_ref }}/* public/generated/${{ github.head_ref }}/ 2>/dev/null || true
+          # Copy the current environment build to the branch-specific directory
+          if [ -d "public/generated/${{ env.BUILD_ENV }}" ]; then
+            mkdir -p "public/generated/${{ github.head_ref }}"
+            cp -r "public/generated/${{ env.BUILD_ENV }}"/* "public/generated/${{ github.head_ref }}/" || true
+          fi
           rm -rf gh-pages-tmp
 
       - name: Regenerate main index.html
