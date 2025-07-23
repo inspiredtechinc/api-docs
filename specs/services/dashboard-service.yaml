@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: project-x-api-dashboard.
-  description: API for Project X dashboard....
+  title: project-x-api-dashboard
+  description: API for Project X dashoard.
   termsOfService: https://www.inspiredtech.ca/terms
   contact:
     name: Inspried Tech
@@ -1345,7 +1345,7 @@ paths:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
       x-codegen-request-body-name: action
-  /dashboard/reviews/listing/{id}:
+  /dashboard/listings/{id}/reviews:
     get:
       tags:
       - review
@@ -1420,7 +1420,7 @@ paths:
       x-google-backend:
         address: https://dashboard-service-ee3nwblsmq-uc.a.run.app
         path_translation: APPEND_PATH_TO_ADDRESS
-  /dashboard/reviews/user/{id}:
+  /dashboard/users/{id}/reviews:
     get:
       tags:
       - review
