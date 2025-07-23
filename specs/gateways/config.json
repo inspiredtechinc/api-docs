@@ -19,7 +19,13 @@
         "message-service",
         "payment-service",
         "document-service"
-      ]
+      ],
+      "sdkConfig": {
+        "enabled": true,
+        "targets": ["dart"],
+        "platforms": ["flutter"],
+        "description": "Flutter/Dart SDK for mobile app"
+      }
     },
     "dashboard": {
       "name": "Dashboard API Gateway",
@@ -31,7 +37,36 @@
       "basePath": "/api/v1",
       "services": [
         "dashboard-service"
-      ]
+      ],
+      "sdkConfig": {
+        "enabled": true,
+        "targets": ["typescript-fetch"],
+        "platforms": ["react", "web"],
+        "description": "TypeScript SDK for React dashboard"
+      }
+    }
+  },
+  "sdkSettings": {
+    "repositoryUrl": "https://github.com/inspiredtechinc/sdk.git",
+    "outputPaths": {
+      "dart": "openapi-dart-sdk",
+      "typescript-fetch": "openapi-typescript-sdk"
+    },
+    "generators": {
+      "dart": {
+        "generator": "dart",
+        "additionalProperties": {
+          "pubName": "project_x_sdk",
+          "pubDescription": "Project X API SDK for Dart/Flutter"
+        }
+      },
+      "typescript-fetch": {
+        "generator": "typescript-fetch",
+        "additionalProperties": {
+          "npmName": "@project-x/sdk",
+          "npmDescription": "Project X API SDK for TypeScript"
+        }
+      }
     }
   }
 }
