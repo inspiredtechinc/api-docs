@@ -27,12 +27,13 @@ jobs:
 
       - name: Set BUILD_ENV (updated for new environment mapping)
         run: |
-          # UPDATED: Map main branch PRs to staging environment
+          # UPDATED: Map main branch PRs to staging environment, others to preview
           if [ "${{ github.base_ref }}" = "main" ]; then
             echo "BUILD_ENV=staging" >> $GITHUB_ENV
           else
             echo "BUILD_ENV=preview" >> $GITHUB_ENV
           fi
+          echo "Using BUILD_ENV: $BUILD_ENV for branch ${{ github.head_ref }} targeting ${{ github.base_ref }}"
 
       - name: Generate docs
         run: node scripts/generate-docs.js
