@@ -165,7 +165,13 @@ paths:
         required: true
       responses:
         '201':
-          description: The registered user
+          description: The registered user with JWT token
+          headers:
+            Authorization:
+              description: Bearer JWT token to be used for subsequent requests.
+              schema:
+                type: string
+                example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
           content:
             application/json:
               schema:
@@ -182,55 +188,10 @@ paths:
                         type: string
                       first_name:
                         type: string
-                      last_name:
-                        type: string
                       email:
                         type: string
-                      bio:
+                      status:
                         type: string
-                      avatar:
-                        type: string
-                        format: uri
-                      phone:
-                        type: string
-                      birthday:
-                        type: string
-                        format: date-time
-                      city:
-                        type: string
-                      country:
-                        type: string
-                        maxItems: 10
-                      interests:
-                        type: array
-                        items:
-                          type: string
-                        maxItems: 10
-                      languages:
-                        type: array
-                        items:
-                          type: string
-                        maxItems: 10
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
-                      gender:
-                        type: string
-                        enum:
-                          - Male
-                          - Female
-                          - Non-binary
-                          - Transgender
-                          - Genderqueer
-                          - Genderfluid
-                          - Agender
-                          - Two-spirit
-                          - Bigender
-                          - Other
-                          - Prefer not to say
                   toast:
                     type: string
                     example: User registered successfully.
@@ -384,6 +345,18 @@ paths:
                           - Bigender
                           - Other
                           - Prefer not to say
+                      status:
+                        type: string
+                        enum:
+                          - active
+                          - suspended
+                          - pending
+                          - deleted
+                      deleted:
+                        type: boolean
+                      deleted_at:
+                        type: string
+                        format: date-time
                   toast:
                     type: string
                     example: User registered successfully.
@@ -613,6 +586,18 @@ paths:
                           - Bigender
                           - Other
                           - Prefer not to say
+                      status:
+                        type: string
+                        enum:
+                          - active
+                          - suspended
+                          - pending
+                          - deleted
+                      deleted:
+                        type: boolean
+                      deleted_at:
+                        type: string
+                        format: date-time
                   toast:
                     type: string
                     example: User registered successfully.
@@ -1375,6 +1360,53 @@ paths:
                         items:
                           type: string
                         maxItems: 10
+                      contacts:
+                        type: array
+                        description: List of user contacts (email, phone, etc.)
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              description: Contact type (email, phone, etc.)
+                            value:
+                              type: string
+                              description: The contact value
+                            verified:
+                              type: boolean
+                            primary:
+                              type: boolean
+                            created_at:
+                              type: string
+                              format: date-time
+                            updated_at:
+                              type: string
+                              format: date-time
+                            metadata:
+                              type: object
+                              additionalProperties: true
+                              description: Additional metadata for the contact
+                      events:
+                        type: array
+                        description: List of user-related events or actions
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              description: Event type (e.g., admin_note, status_change)
+                            message:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                            created_by:
+                              type: string
+                              description: The actor who created the event
+                            metadata:
+                              type: object
+                              additionalProperties: true
+                              description: Additional metadata for the event
                       created_at:
                         type: string
                         format: date-time
@@ -1387,14 +1419,20 @@ paths:
                           - Male
                           - Female
                           - Non-binary
-                          - Transgender
-                          - Genderqueer
-                          - Genderfluid
-                          - Agender
-                          - Two-spirit
-                          - Bigender
                           - Other
                           - Prefer not to say
+                      status:
+                        type: string
+                        enum:
+                          - active
+                          - suspended
+                          - pending
+                          - deleted
+                      deleted:
+                        type: boolean
+                      deleted_at:
+                        type: string
+                        format: date-time
                   toast:
                     type: string
                     example: User registered successfully.
@@ -1599,6 +1637,18 @@ paths:
                           - Bigender
                           - Other
                           - Prefer not to say
+                      status:
+                        type: string
+                        enum:
+                          - active
+                          - suspended
+                          - pending
+                          - deleted
+                      deleted:
+                        type: boolean
+                      deleted_at:
+                        type: string
+                        format: date-time
                   toast:
                     type: string
                     example: User registered successfully.
@@ -1902,167 +1952,6 @@ paths:
                 required:
                   - success
                   - error
-  /users/me/listings:
-    get:
-      summary: Get all listings for the current user
-      tags:
-        - user
-      operationId: getCurrentUserListings
-      x-google-backend:
-        address: https://listing-service-ee3nwblsmq-uc.a.run.app/api/v1/listings/user
-      security:
-        - jwtAuth: []
-      responses:
-        '200':
-          description: All listings for the user
-          content:
-            application/json:
-              schema:
-                type: object
-                description: Response containing all listings for a user.
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    description: List of listings for the user
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        title:
-                          type: string
-                        description:
-                          type: string
-                        location:
-                          type: object
-                          properties:
-                            latitude:
-                              type: number
-                              format: double
-                            longitude:
-                              type: number
-                              format: double
-                        price:
-                          type: number
-                          format: double
-                        available:
-                          type: boolean
-                        thumbnail:
-                          type: string
-                          format: uri
-                        distance:
-                          type: number
-                          format: double
-                        created_at:
-                          type: string
-                          format: date-time
-                        max_guests:
-                          type: integer
-                          format: int32
-                        rating:
-                          type: number
-                          format: double
-                        instant_book:
-                          type: boolean
-                        active:
-                          type: boolean
-                        amenities:
-                          type: array
-                          items:
-                            type: string
-                        cancellation_policy:
-                          type: string
-                        category:
-                          type: object
-                          properties:
-                            name:
-                              type: string
-                            code:
-                              type: string
-                            description:
-                              type: string
-                  toast:
-                    type: string
-                    example: Listings retrieved successfully.
-                  error:
-                    type: string
-                    example: null
-                required:
-                  - success
-                  - data
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                description: Standard error response model for failed requests.
-                properties:
-                  success:
-                    type: boolean
-                    description: Indicates if the request was successful.
-                    example: false
-                  error:
-                    type: string
-                    description: Error message describing the failure.
-                    example: Invalid booking ID.
-                  toast:
-                    type: string
-                    description: Optional toast message for the client UI.
-                    example: Unable to process your request.
-                required:
-                  - success
-                  - error
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                description: Standard error response model for failed requests.
-                properties:
-                  success:
-                    type: boolean
-                    description: Indicates if the request was successful.
-                    example: false
-                  error:
-                    type: string
-                    description: Error message describing the failure.
-                    example: Invalid booking ID.
-                  toast:
-                    type: string
-                    description: Optional toast message for the client UI.
-                    example: Unable to process your request.
-                required:
-                  - success
-                  - error
-        default:
-          description: Default error response
-          content:
-            application/json:
-              schema:
-                type: object
-                description: Standard error response model for failed requests.
-                properties:
-                  success:
-                    type: boolean
-                    description: Indicates if the request was successful.
-                    example: false
-                  error:
-                    type: string
-                    description: Error message describing the failure.
-                    example: Invalid booking ID.
-                  toast:
-                    type: string
-                    description: Optional toast message for the client UI.
-                    example: Unable to process your request.
-                required:
-                  - success
-                  - error
-  /users/me/password/change:
     post:
       summary: Change current user's password
       tags:
@@ -2380,6 +2269,144 @@ paths:
                 required:
                   - success
                   - error
+  /users/me/phone/add:
+    patch:
+      summary: Add a new phone number to the current user
+      tags:
+        - user
+      operationId: addCurrentUserPhone
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number:
+                  type: string
+                  description: The phone number in E.164 format (e.g., +1234567890)
+              required:
+                - phone_number
+        description: The phone number to add
+        required: true
+      responses:
+        '200':
+          description: Phone number added and verification initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+        '409':
+          description: Phone number already in use
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+  /users/me/email/add:
+    patch:
+      summary: Add a new email to the current user
+      tags:
+        - user
+      operationId: addCurrentUserEmail
+      x-google-backend:
+        address: https://user-service-ee3nwblsmq-uc.a.run.app
+        path_translation: APPEND_PATH_TO_ADDRESS
+      security:
+        - jwtAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required:
+                - email
+        description: The email to add
+        required: true
+      responses:
+        '200':
+          description: Email added and verification initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+        '409':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
   /users/me/email/confirm:
     post:
       summary: Confirm current user's email
