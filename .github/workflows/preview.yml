@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 0 debug incoming event payload
+      # 0: debug incoming event payload
       - name: 🐛 Debug incoming dispatch payload
         if: github.event_name == 'repository_dispatch'
         run: |
@@ -26,21 +26,21 @@ jobs:
           echo "ms_repo:         ${{ github.event.client_payload.ms_repo }}"
           echo "========================"
 
-      # 0.1 early exit if not an “opened”/“synchronize”/“reopened” dispatch
+      # 0.1: early exit if not a PR event (opened/synchronize/reopened)
       - name: Early exit if not a PR event
         if: >
-          github.event_name == 'repository_dispatch' && !contains(fromJson('["opened","synchronize","reopened"]'), github.event.client_payload.event_type)
+          github.event_name == 'repository_dispatch' && !contains(fromJson('["opened","synchronize","reopened"]'),
+                   github.event.client_payload.event_type)
         run: |
           echo "Not a PR event (event_type=${{ github.event.client_payload.event_type }}); exiting."
           exit 0
 
-      # 1. checkout the api-docs repo code
+      # 1: Checkout the api-docs repo code
       - name: Checkout api-docs
         uses: actions/checkout@v3
 
-      # 2. checkout api-specs and copy in the updated spec
+      # 2: Checkout api-specs and copy in the updated spec
       - name: Checkout api-specs
-        if: github.event_name == 'repository_dispatch'
         uses: actions/checkout@v3
         with:
           repository: inspiredtechinc/api-specs
@@ -49,28 +49,20 @@ jobs:
           path: api-specs-repo
 
       - name: Copy updated spec into docs folder
-        if: github.event_name == 'repository_dispatch'
         run: |
-          # Ensure target directory exists
           mkdir -p specs/services
-
-          # Copy from api-specs using the full path from the payload
           cp api-specs-repo/${{ github.event.client_payload.spec_path }} specs/services/
+          echo "Copied:" && ls -l specs/services/$(basename "${{ github.event.client_payload.spec_path }}")
 
-          # (Optional) Print out what we copied for debugging
-          echo "Copied:"
-          ls -l specs/services/$(basename "${{ github.event.client_payload.spec_path }}")
-
-
-      # 3. install dependencies
+      # 3: install dependencies
       - name: Install dependencies
         run: npm install
 
-      # 4. fix BUILD_ENV logic to use the dispatch payload
+      # 4: Set BUILD_ENV using payload or default to main
       - name: Set BUILD_ENV
         run: |
-          # Use base_branch from payload (default to main)
-          BASE_BRANCH="${{ github.event.client_payload.base_branch || 'main' }}"
+          BASE_BRANCH="${{ github.event.client_payload.base_branch }}"
+          BASE_BRANCH="${BASE_BRANCH:-main}"
           if [ "$BASE_BRANCH" = "main" ]; then
             echo "BUILD_ENV=staging" >> $GITHUB_ENV
           else
@@ -78,7 +70,7 @@ jobs:
           fi
           echo "Using BUILD_ENV=$BUILD_ENV (base_branch=$BASE_BRANCH)"
 
-      # 5. generate the docs (double‐run is left intact per your request)
+      # 5: generate the docs (double-run per request)
       - name: Generate docs
         run: node scripts/generate-docs.js
         env:
@@ -87,7 +79,7 @@ jobs:
       - name: Regenerate main index.html
         run: node scripts/generate-docs.js --index-only
 
-      # 7. merge into gh‑pages and PUSH it so previews actually appear/disappear
+      # 6: merge into gh-pages and push
       - name: Merge & publish to gh-pages
         run: |
           git config user.name "GitHub Actions"
@@ -104,23 +96,21 @@ jobs:
 
           # copy this branch’s build
           mkdir -p "public/generated/${{ env.BUILD_ENV }}"
+          mkdir -p "public/generated/${{ github.event.client_payload.spec_branch }}"
           cp -rv public/generated/"${{ env.BUILD_ENV }}"/* "public/generated/${{ github.event.client_payload.spec_branch }}/" || true
 
-          # commit & push all updates (including deletions on close)
+          # commit & push all updates
           cd public
           git init
           git remote add origin https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git
           git checkout -B gh-pages
           git add generated
-          git commit -m "Docs Preview: ${{ github.event.client_payload.spec_branch }} (${{
-            github.event.client_payload.event_type }})"
+          git commit -m "Docs Preview: ${{ github.event.client_payload.spec_branch }} (${${{ github.event.client_payload.event_type }}})"
           git push --force origin gh-pages
           cd ..
-
-          # cleanup
           rm -rf gh-pages-tmp
 
-      # 8. sticky comments back to the service & api-specs PRs
+      # 7: Comment back on microservice PR
       - name: Comment back on microservice PR
         if: >
           github.event_name == 'repository_dispatch' &&
@@ -135,6 +125,7 @@ jobs:
             🚀 **Preview Documentation**
             https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html
 
+      # 8: Comment back on api-specs PR
       - name: Comment back on api-specs PR
         if: >
           github.event_name == 'repository_dispatch' &&
@@ -148,13 +139,12 @@ jobs:
             🚀 **Preview Documentation**
             https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html
 
-      # 9. cleanup on close (and push the deletion)
+      # 9: Cleanup on PR close
       - name: Cleanup preview on PR close
         if: >
           github.event_name == 'repository_dispatch' &&
           github.event.client_payload.event_type == 'closed'
         run: |
-          # remove the branch folder and push
           git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git gh-pages-clean
           cd gh-pages-clean
           rm -rf public/generated/${{ github.event.client_payload.spec_branch }}
