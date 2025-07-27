@@ -13,7 +13,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # early exit if not an “opened”/“synchronize”/“reopened” dispatch
+      # 0 debug incoming event payload
+      - name: 🐛 Debug incoming dispatch payload
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          echo "=== DISPATCH PAYLOAD ==="
+          echo "event_type:      ${{ github.event.client_payload.event_type }}"
+          echo "spec_path:       ${{ github.event.client_payload.spec_path }}"
+          echo "spec_branch:     ${{ github.event.client_payload.spec_branch }}"
+          echo "spec_pr_number:  ${{ github.event.client_payload.spec_pr_number }}"
+          echo "ms_pr_number:    ${{ github.event.client_payload.ms_pr_number }}"
+          echo "ms_repo:         ${{ github.event.client_payload.ms_repo }}"
+          echo "========================"
+
+      # 0.1 early exit if not an “opened”/“synchronize”/“reopened” dispatch
       - name: Early exit if not a PR event
         if: >
           github.event_name == 'repository_dispatch' && !contains(fromJson('["opened","synchronize","reopened"]'), github.event.client_payload.event_type)
