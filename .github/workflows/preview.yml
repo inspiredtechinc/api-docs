@@ -1,24 +1,43 @@
 name: Docs Preview
 
 on:
-  pull_request:
-    branches:
-      - main  # UPDATED: Focus on main branch per new environment mapping
-    paths:
-      - 'specs/services/*.yaml'
-      - 'specs/gateways/*.yaml'
-      - 'specs/gateways/config.json'
-      - '.lastbuild'
+  # pull_request:
+  #   branches:
+  #     - main  # UPDATED: Focus on main branch per new environment mapping
+  #   paths:
+  #     - 'specs/services/*.yaml'
+  #     - 'specs/gateways/*.yaml'
+  #     - 'specs/gateways/config.json'
+  #     - '.lastbuild'
+  repository_dispatch:
+    types: [spec-sync]
 
 concurrency:
   group: docs-preview-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   preview:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Early exit if not a PR event (on dispatch)
+        if: github.event_name == 'repository_dispatch' && (!contains(fromJson('["opened","synchronize","reopened"]'), github.event.client_payload.event_type))
+        run: |
+          echo "Not a PR event (event_type=${{ github.event.client_payload.event_type }}), exiting preview workflow."
+          exit 0
+      - name: Checkout api-specs repo (on dispatch)
+        if: github.event_name == 'repository_dispatch'
+        uses: actions/checkout@v3
+        with:
+          repository: inspiredtechinc/api-specs
+          ref: ${{ github.event.client_payload.spec_branch }}
+          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          path: api-specs-repo
+
+      - name: Copy updated spec from api-specs
+        if: github.event_name == 'repository_dispatch'
+        run: cp api-specs-repo/services/${{ github.event.client_payload.spec_filename }} specs/services/
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -45,50 +64,69 @@ jobs:
           git clone --depth=1 --branch gh-pages https://github.com/inspiredtechinc/api-docs.git gh-pages-tmp || true
           mkdir -p public/generated
           if [ -d gh-pages-tmp/generated ]; then
-            cp -r gh-pages-tmp/generated/* public/generated/ || true
+            cp -rv gh-pages-tmp/generated/* public/generated/ || true
           fi
           # Copy the current environment build to the branch-specific directory
           if [ -d "public/generated/${{ env.BUILD_ENV }}" ]; then
             mkdir -p "public/generated/${{ github.head_ref }}"
-            cp -r "public/generated/${{ env.BUILD_ENV }}"/* "public/generated/${{ github.head_ref }}/" || true
+            cp -rv "public/generated/${{ env.BUILD_ENV }}"/* "public/generated/${{ github.head_ref }}/" || true
           fi
           rm -rf gh-pages-tmp
 
       - name: Regenerate main index.html
         run: node scripts/generate-docs.js --index-only
 
-      - name: Deploy to gh_pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: public
 
-      - name: Add sticky comment to api-docs PR
+      - name: Add sticky comment to microservice PR (on dispatch)
+        if: github.event_name == 'repository_dispatch' && github.event.client_payload.ms_repo && github.event.client_payload.ms_pr_number
         uses: peter-evans/create-or-update-comment@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: inspiredtechinc/api-docs
-          issue-number: ${{ github.event.number }}
+          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          repository: ${{ github.event.client_payload.ms_repo }}
+          issue-number: ${{ github.event.client_payload.ms_pr_number }}
           body: |
             🚀 **Preview Documentation**
-            Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html)
+            Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html)
 
-      - name: Extract api-specs PR number from PR body
-        id: extract
-        run: |
-          PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q ".body")
-          API_SPECS_PR=$(echo "$PR_BODY" | grep -o 'api-specs-pr: [0-9]*' | awk '{print $2}')
-          echo "API_SPECS_PR=$API_SPECS_PR" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Add sticky comment to api-specs PR
-        if: env.API_SPECS_PR != ''
+      - name: Add sticky comment to api-specs PR (on dispatch)
+        if: github.event_name == 'repository_dispatch' && github.event.client_payload.spec_pr_number
         uses: peter-evans/create-or-update-comment@v2
         with:
           token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           repository: inspiredtechinc/api-specs
-          issue-number: ${{ env.API_SPECS_PR }}
+          issue-number: ${{ github.event.client_payload.spec_pr_number }}
           body: |
             🚀 **Preview Documentation**
-            Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html)
+            Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html)
+
+      # --- NOTE: If you ever need additional review, audit, or rollback for documentation changes, you can reintroduce logic to create a PR in api-docs for each spec update. This would allow for manual review, sticky comments, and a clearer audit trail in api-docs. For now, the microservice PR is the source of truth and review gate. ---
+      # --- Old PR-specific steps below are commented out for dispatch-based flow ---
+      # - name: Add sticky comment to api-docs PR
+      #   uses: peter-evans/create-or-update-comment@v2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     repository: inspiredtechinc/api-docs
+      #     issue-number: ${{ github.event.number }}
+      #     body: |
+      #       🚀 **Preview Documentation**
+      #       Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html)
+
+      # - name: Extract api-specs PR number from PR body
+      #   id: extract
+      #   run: |
+      #     PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q ".body")
+      #     API_SPECS_PR=$(echo "$PR_BODY" | grep -o 'api-specs-pr: [0-9]*' | awk '{print $2}')
+      #     echo "API_SPECS_PR=$API_SPECS_PR" >> $GITHUB_ENV
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Add sticky comment to api-specs PR
+      #   if: env.API_SPECS_PR != ''
+      #   uses: peter-evans/create-or-update-comment@v2
+      #   with:
+      #     token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+      #     repository: inspiredtechinc/api-specs
+      #     issue-number: ${{ env.API_SPECS_PR }}
+      #     body: |
+      #       🚀 **Preview Documentation**
+      #       Preview available at: [https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html](https://inspiredtechinc.github.io/api-docs/generated/${{ github.head_ref }}/index.html)

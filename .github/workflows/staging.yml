@@ -2,19 +2,19 @@
 name: Docs Staging Deploy
 
 on:
-  push:
-    branches:
-      - main  # UPDATED: main -> staging per new environment mapping
-    paths:
-      - 'specs/services/*.yaml'
-      - 'specs/gateways/*.yaml'
-      - 'specs/gateways/config.json'
-      - 'specs/services/*.yml'
-      - 'specs/gateways/*.yml'
-      - '.lastbuild'
+  # push:
+  #   branches:
+  #     - main  # UPDATED: main -> staging per new environment mapping
+  #   paths:
+  #     - 'specs/services/*.yaml'
+  #     - 'specs/gateways/*.yaml'
+  #     - 'specs/gateways/config.json'
+  #     - 'specs/services/*.yml'
+  #     - 'specs/gateways/*.yml'
+  #     - '.lastbuild'
   
   repository_dispatch:
-    types: [deploy-staging-docs]
+    types: [deploy-staging-docs, spec-sync]
   
   workflow_dispatch:
     inputs:
@@ -28,6 +28,11 @@ jobs:
   deploy-staging-docs:
     runs-on: ubuntu-latest
     steps:
+      - name: Early exit if not a merge event (on dispatch)
+        if: github.event_name == 'repository_dispatch' && github.event.client_payload.event_type != 'merged'
+        run: |
+          echo "Not a merge event (event_type=${{ github.event.client_payload.event_type }}), exiting staging workflow."
+          exit 0
       - name: Checkout code
         uses: actions/checkout@v3
 

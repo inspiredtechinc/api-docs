@@ -4,12 +4,12 @@ on:
   push:  # CRITICAL FIX: Changed from pull_request to push
     tags:
       - 'v*'  # Tag-based production deployment per new environment mapping
-    paths:
-      - 'specs/services/*.yaml'
-      - 'specs/gateways/*.yaml'
-      - 'specs/gateways/config.json'
-      - 'specs/services/*.yml'
-      - 'specs/gateways/*.yml'
+    # paths:
+    #   - 'specs/services/*.yaml'
+    #   - 'specs/gateways/*.yaml'
+    #   - 'specs/gateways/config.json'
+    #   - 'specs/services/*.yml'
+    #   - 'specs/gateways/*.yml'
   
   repository_dispatch:
     types: [deploy-prod-docs]
@@ -32,7 +32,7 @@ jobs:
 
       - name: Generate docs
         env:
-          BUILD_ENV: prod
+          BUILD_ENV: ${{ github.ref_name }} # Use the tag name as the build environment so we can keep multiple versions
         run: node scripts/generate-docs.js
 
       - name: Merge existing gh-pages content (preserve all envs)
@@ -42,8 +42,10 @@ jobs:
           if [ -d gh-pages-tmp/generated ]; then
             cp -r gh-pages-tmp/generated/* public/generated/ || true
           fi
-          # Overwrite prod with latest build
-          cp -r public/generated/prod/* public/generated/prod/ 2>/dev/null || true
+          # Store docs for this tag in its own folder
+          TAG_NAME="${GITHUB_REF##*/}"
+          mkdir -p "public/generated/$TAG_NAME"
+          cp -r public/generated/prod/* "public/generated/$TAG_NAME/" 2>/dev/null || true
           # Remove all pr-* preview folders
           if [ -d public/generated ]; then
             cd public/generated
@@ -76,7 +78,7 @@ jobs:
               "event_type": "deploy-prod-gateway",
               "client_payload": {
                 "source": "api-docs",
-                "branch": "main",
+                "tag": "${{ github.ref }}",
                 "sha": "${{ github.sha }}"
               }
             }'
