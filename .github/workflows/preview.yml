@@ -99,7 +99,7 @@ jobs:
           user_email: actions@github.com
           keep_files: true
 
-      # 7: Comment back on microservice PR
+      # 7: Ask api-specs to post a preview comment on all relevant PRs
       - name: Ask api-specs to post preview comment
         uses: peter-evans/repository-dispatch@v2
         with:
@@ -108,25 +108,24 @@ jobs:
           event-type: post-preview-comment
           client-payload: |
             {
+              "event_type": "${github.event.client_payload.event_type}",
               "ms_repo": "${{ github.event.client_payload.ms_repo }}",
               "ms_pr_number": "${{ github.event.client_payload.ms_pr_number }}",
               "preview_url": "https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html",
               "spec_pr_number": "${{ github.event.client_payload.spec_pr_number }}"
             }
-      # 8: Comment back on api-specs PR
-      - name: Comment back on api-specs PR
-        if: >
-          github.event.client_payload.spec_pr_number &&
-          github.event.client_payload.event_type != 'closed'
-        uses: peter-evans/create-or-update-comment@v2
-        with:
-          token:        ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          repository:   inspiredtechinc/api-specs
-          issue-number: ${{ github.event.client_payload.spec_pr_number }}
-          body: |
-            🚀 **Preview Documentation**
-            https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
+      # # add pr comment to this PR
+      # - name: Add PR comment
+      #   if: github.event.client_payload.event_type != 'closed'
+      #   uses: peter-evans/create-or-update-comment@v2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     repository: ${{ github.repository }}
+      #     issue-number: ${{ github.event.client_payload.ms_pr_number }}
+      #     body: |
+      #       🚀 **Preview Documentation**
+      #       "https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html"
 
       # 9: Cleanup on PR close
       - name: Log cleanup message
