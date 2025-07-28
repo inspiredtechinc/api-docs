@@ -42,6 +42,7 @@ jobs:
 
       # 2: Checkout api-specs and copy in the updated spec
       - name: Checkout api-specs
+        if: github.event.client_payload.event_type != 'closed'
         uses: actions/checkout@v3
         with:
           repository: inspiredtechinc/api-specs
@@ -50,10 +51,12 @@ jobs:
           path: api-specs-repo
 
       - name: Copy updated spec into docs folder
+        if: github.event.client_payload.event_type != 'closed'
         run: |
           mkdir -p specs/services
           cp api-specs-repo/${{ github.event.client_payload.spec_path }} specs/services/
           echo "Copied:" && ls -l specs/services/$(basename "${{ github.event.client_payload.spec_path }}")
+
 
       # 3: Install dependencies
       - name: Install dependencies
