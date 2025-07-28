@@ -96,7 +96,7 @@ jobs:
       - name: Ask api-specs to post preview comment
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.MS_PR_COMMENT_TOKEN }}
+          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           repository: inspiredtechinc/api-specs
           event-type: post-preview-comment
           client-payload: |
