@@ -116,16 +116,20 @@ jobs:
       # 8: Comment back on api-specs PR
       - name: Comment back on api-specs PR
         if: >
-          github.event_name == 'repository_dispatch' &&
-          github.event.client_payload.spec_pr_number
+          github.event.client_payload.spec_pr_number &&
+          github.event.client_payload.event_type != 'closed'
         uses: peter-evans/create-or-update-comment@v2
         with:
-          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          repository: inspiredtechinc/api-specs
+          token:        ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          repository:   inspiredtechinc/api-specs
           issue-number: ${{ github.event.client_payload.spec_pr_number }}
           body: |
             🚀 **Preview Documentation**
             https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
+
+
+
+
 
       # 9: Cleanup on PR close
       - name: Log cleanup message
