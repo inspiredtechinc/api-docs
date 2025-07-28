@@ -128,9 +128,6 @@ jobs:
             https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
 
-
-
-
       # 9: Cleanup on PR close
       - name: Log cleanup message
         if: >
