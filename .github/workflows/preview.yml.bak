@@ -1,3 +1,6 @@
+# Backup of preview.yml created on 2025-07-27
+
+# --- Original file content below ---
 name: Docs Preview
 
 on:
@@ -14,7 +17,7 @@ jobs:
 
     steps:
       # 0: debug incoming event payload
-      - name: 🐛 Debug incoming dispatch payload
+      - name:  Debug incoming dispatch payload
         if: github.event_name == 'repository_dispatch'
         run: |
           echo "=== DISPATCH PAYLOAD ==="
@@ -29,8 +32,7 @@ jobs:
       # 0.1: early exit if not a PR event (opened/synchronize/reopened)
       - name: Early exit if not a PR event
         if: >
-          github.event_name == 'repository_dispatch' &&
-          !contains(fromJson('["opened","synchronize","reopened"]'),
+          github.event_name == 'repository_dispatch' && !contains(fromJson('["opened","synchronize","reopened"]'),
                    github.event.client_payload.event_type)
         run: |
           echo "Not a PR event (event_type=${{ github.event.client_payload.event_type }}); exiting."
@@ -80,16 +82,36 @@ jobs:
       - name: Regenerate main index.html
         run: node scripts/generate-docs.js --index-only
 
-      # 6: publish to gh-pages via action
-      - name: Publish to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir: public
-          user_name: GitHub Actions
-          user_email: actions@github.com
-          force_orphan: true
-          keep_files: true
+      # 6: merge into gh-pages and push
+      - name: Merge & publish to gh-pages
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # clone or fetch gh-pages
+          git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git gh-pages-tmp || true
+          mkdir -p public/generated
+
+          # merge old generated files
+          if [ -d gh-pages-tmp/generated ]; then
+            cp -rv gh-pages-tmp/generated/* public/generated/ || true
+          fi
+
+          # copy this branch’s build
+          mkdir -p "public/generated/${{ env.BUILD_ENV }}"
+          mkdir -p "public/generated/${{ github.event.client_payload.spec_branch }}"
+          cp -rv public/generated/"${{ env.BUILD_ENV }}"/* "public/generated/${{ github.event.client_payload.spec_branch }}/" || true
+
+          # commit & push all updates
+          cd public
+          git init
+          git remote add origin https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git
+          git checkout -B gh-pages
+          git add generated
+          git commit -m "Docs Preview: ${{ github.event.client_payload.spec_branch }} (${{ github.event.client_payload.event_type }})"
+          git push --force origin gh-pages
+          cd ..
+          rm -rf gh-pages-tmp
 
       # 7: Comment back on microservice PR
       - name: Comment back on microservice PR
