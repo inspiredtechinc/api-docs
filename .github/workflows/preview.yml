@@ -27,14 +27,15 @@ jobs:
           echo "========================"
 
       # 0.1: Early exit if not a PR event (opened/synchronize/reopened/merged)
-      - name: Early exit if not a PR event
+      - name: Early exit if not a PR event or closed cleanup
         if: >
           github.event_name == 'repository_dispatch' &&
-          !contains(fromJson('["opened","synchronize","reopened","merged"]'),
-                   github.event.client_payload.event_type)
+          !contains(fromJson('["opened","synchronize","reopened","merged","closed"]'),
+                    github.event.client_payload.event_type)
         run: |
-          echo "Not a PR/merge event (event_type=${{ github.event.client_payload.event_type }}); exiting."
+          echo "Not a PR/merge/closed event (event_type=${{ github.event.client_payload.event_type }}); exiting."
           exit 0
+
 
       # 1: Checkout the api-docs repo code
       - name: Checkout api-docs
@@ -110,19 +111,19 @@ jobs:
               "spec_pr_number": "${{ github.event.client_payload.spec_pr_number }}"
             }
 
-      # 8: Comment back on api-specs PR
-      - name: Comment back on api-specs PR
-        if: >
-          github.event_name == 'repository_dispatch' &&
-          github.event.client_payload.spec_pr_number
-        uses: peter-evans/create-or-update-comment@v2
-        with:
-          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          repository: inspiredtechinc/api-specs
-          issue-number: ${{ github.event.client_payload.spec_pr_number }}
-          body: |
-            🚀 **Preview Documentation**
-            https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
+      # # 8: Comment back on api-specs PR
+      # - name: Comment back on api-specs PR
+      #   if: >
+      #     github.event_name == 'repository_dispatch' &&
+      #     github.event.client_payload.spec_pr_number
+      #   uses: peter-evans/create-or-update-comment@v2
+      #   with:
+      #     token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+      #     repository: inspiredtechinc/api-specs
+      #     issue-number: ${{ github.event.client_payload.spec_pr_number }}
+      #     body: |
+      #       🚀 **Preview Documentation**
+      #       https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
       # 9: Cleanup on PR close
       - name: Log cleanup message
