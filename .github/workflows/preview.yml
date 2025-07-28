@@ -92,19 +92,19 @@ jobs:
           keep_files: true
 
       # 7: Comment back on microservice PR
-      - name: Comment back on microservice PR
-        if: >
-          github.event_name == 'repository_dispatch' &&
-          github.event.client_payload.ms_repo &&
-          github.event.client_payload.ms_pr_number
-        uses: peter-evans/create-or-update-comment@v2
+      - name: Ask api-specs to post preview comment
+        uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          repository: ${{ github.event.client_payload.ms_repo }}
-          issue-number: ${{ github.event.client_payload.ms_pr_number }}
-          body: |
-            🚀 **Preview Documentation**
-            https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html
+          token: ${{ secrets.MS_PR_COMMENT_TOKEN }} # Token to post comments on microservice PR, done for better security since this repo is public
+          repository: inspiredtechinc/api-specs
+          event-type: post-preview-comment
+          client-payload: |
+            {
+              "ms_repo": "${{ github.event.client_payload.ms_repo }}",
+              "ms_pr_number": "${{ github.event.client_payload.ms_pr_number }}",
+              "preview_url": "https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html",
+              "spec_pr_number": "${{ github.event.client_payload.spec_pr_number }}"
+            }
 
       # 8: Comment back on api-specs PR
       - name: Comment back on api-specs PR
