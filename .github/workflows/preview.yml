@@ -71,12 +71,14 @@ jobs:
 
       # 5: Generate the docs
       - name: Generate docs
+        if: github.event.client_payload.event_type != 'closed'
         run: node scripts/generate-docs.js
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
       # 5.5: Merge old previews from gh-pages
       - name: Merge existing previews from gh-pages
+        if: github.event.client_payload.event_type != 'closed'
         run: |
           echo "Merging previously published previews..."
           git clone --depth=1 --branch gh-pages \
@@ -86,10 +88,12 @@ jobs:
 
 
       - name: Regenerate main index.html
+        if: github.event.client_payload.event_type != 'closed'
         run: node scripts/generate-docs.js --index-only
 
       # 6: Publish to gh-pages
       - name: Publish to GitHub Pages
+        if: github.event.client_payload.event_type != 'closed'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
