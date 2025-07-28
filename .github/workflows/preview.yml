@@ -26,21 +26,21 @@ jobs:
           echo "ms_repo:         ${{ github.event.client_payload.ms_repo }}"
           echo "========================"
 
-      # 0.1: Early exit if not a PR event or merge
+      # 0.1: Early exit if not a PR event (opened/synchronize/reopened/merged)
       - name: Early exit if not a PR event
         if: >
           github.event_name == 'repository_dispatch' &&
           !contains(fromJson('["opened","synchronize","reopened","merged"]'),
-                    github.event.client_payload.event_type)
+                   github.event.client_payload.event_type)
         run: |
           echo "Not a PR/merge event (event_type=${{ github.event.client_payload.event_type }}); exiting."
           exit 0
 
-      # 1: Checkout api-docs repo
+      # 1: Checkout the api-docs repo code
       - name: Checkout api-docs
         uses: actions/checkout@v3
 
-      # 2: Checkout api-specs and copy in updated spec
+      # 2: Checkout api-specs and copy in the updated spec
       - name: Checkout api-specs
         uses: actions/checkout@v3
         with:
@@ -72,28 +72,27 @@ jobs:
           fi
           echo "Using BUILD_ENV=$BUILD_ENV, PUBLISH_DIR=$PUBLISH_DIR"
 
-      # 5: Generate docs
+      # 5: Generate the docs
       - name: Generate docs
         run: node scripts/generate-docs.js
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
-      # 6: Regenerate main index
       - name: Regenerate main index.html
         run: node scripts/generate-docs.js --index-only
 
-      # 7: Publish to gh-pages
+      # 6: Publish to gh-pages
       - name: Publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir: public/generated/${{ env.BUILD_ENV }}
+          publish_dir: public
           destination_dir: ${{ env.PUBLISH_DIR }}
           user_name: GitHub Actions
           user_email: actions@github.com
           keep_files: true
 
-      # 8: Comment back on microservice PR
+      # 7: Comment back on microservice PR
       - name: Ask api-specs to post preview comment
         uses: peter-evans/repository-dispatch@v2
         with:
@@ -108,7 +107,7 @@ jobs:
               "spec_pr_number": "${{ github.event.client_payload.spec_pr_number }}"
             }
 
-      # 9: Comment back on api-specs PR
+      # 8: Comment back on api-specs PR
       - name: Comment back on api-specs PR
         if: >
           github.event_name == 'repository_dispatch' &&
@@ -122,7 +121,7 @@ jobs:
             🚀 **Preview Documentation**
             https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
-      # 10: Cleanup on PR close      # 10: Cleanup on PR close
+      # 9: Cleanup on PR close
       - name: Log cleanup message
         if: >
           github.event_name == 'repository_dispatch' &&
@@ -141,4 +140,3 @@ jobs:
           user_name: GitHub Actions
           user_email: actions@github.com
           keep_files: false
-
