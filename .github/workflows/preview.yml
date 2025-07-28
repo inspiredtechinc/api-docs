@@ -108,7 +108,7 @@ jobs:
           event-type: post-preview-comment
           client-payload: |
             {
-              "event_type": "${github.event.client_payload.event_type}",
+              "event_type": "${{ github.event.client_payload.event_type }}",
               "ms_repo": "${{ github.event.client_payload.ms_repo }}",
               "ms_pr_number": "${{ github.event.client_payload.ms_pr_number }}",
               "preview_url": "https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html",
