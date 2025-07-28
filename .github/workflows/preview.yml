@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 0: debug incoming event payload
+      # 0: Debug incoming event payload
       - name: 🐛 Debug incoming dispatch payload
         if: github.event_name == 'repository_dispatch'
         run: |
@@ -26,14 +26,13 @@ jobs:
           echo "ms_repo:         ${{ github.event.client_payload.ms_repo }}"
           echo "========================"
 
-      # 0.1: early exit if not a PR event (opened/synchronize/reopened)
+      # 0.1: Early exit if not a PR event (opened/synchronize/reopened)
       - name: Early exit if not a PR event
         if: >
-          github.event_name == 'repository_dispatch' &&
-          !contains(fromJson('["opened","synchronize","reopened"]'),
+          github.event_name == 'repository_dispatch' && !contains(fromJson('["opened","synchronize","reopened","merged"]'),
                    github.event.client_payload.event_type)
         run: |
-          echo "Not a PR event (event_type=${{ github.event.client_payload.event_type }}); exiting."
+          echo "Not a PR/merge event (event_type=${{ github.event.client_payload.event_type }}); exiting."
           exit 0
 
       # 1: Checkout the api-docs repo code
@@ -55,23 +54,24 @@ jobs:
           cp api-specs-repo/${{ github.event.client_payload.spec_path }} specs/services/
           echo "Copied:" && ls -l specs/services/$(basename "${{ github.event.client_payload.spec_path }}")
 
-      # 3: install dependencies
+      # 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # 4: Set BUILD_ENV using payload or default to main
-      - name: Set BUILD_ENV
+      # 4: Determine BUILD_ENV and PUBLISH_DIR
+      - name: Set ENV values
         run: |
-          BASE_BRANCH="${{ github.event.client_payload.base_branch }}"
-          BASE_BRANCH="${BASE_BRANCH:-main}"
-          if [ "$BASE_BRANCH" = "main" ]; then
+          EVENT_TYPE="${{ github.event.client_payload.event_type }}"
+          if [ "$EVENT_TYPE" = "merged" ]; then
             echo "BUILD_ENV=staging" >> $GITHUB_ENV
+            echo "PUBLISH_DIR=generated/staging" >> $GITHUB_ENV
           else
             echo "BUILD_ENV=preview" >> $GITHUB_ENV
+            echo "PUBLISH_DIR=generated/${{ github.event.client_payload.spec_branch }}" >> $GITHUB_ENV
           fi
-          echo "Using BUILD_ENV=$BUILD_ENV (base_branch=$BASE_BRANCH)"
+          echo "Using BUILD_ENV=$BUILD_ENV, PUBLISH_DIR=$PUBLISH_DIR"
 
-      # 5: generate the docs (double-run per request)
+      # 5: Generate the docs
       - name: Generate docs
         run: node scripts/generate-docs.js
         env:
@@ -80,29 +80,29 @@ jobs:
       - name: Regenerate main index.html
         run: node scripts/generate-docs.js --index-only
 
-      # 6: publish to gh-pages via action
+      # 6: Publish to gh-pages
       - name: Publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           publish_dir: public
+          destination_dir: ${{ env.PUBLISH_DIR }}
           user_name: GitHub Actions
           user_email: actions@github.com
-          force_orphan: true
           keep_files: true
 
       # 7: Comment back on microservice PR
       - name: Ask api-specs to post preview comment
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.MS_PR_COMMENT_TOKEN }} # Token to post comments on microservice PR, done for better security since this repo is public
+          token: ${{ secrets.MS_PR_COMMENT_TOKEN }} # Token to post comments on microservice PR
           repository: inspiredtechinc/api-specs
           event-type: post-preview-comment
           client-payload: |
             {
               "ms_repo": "${{ github.event.client_payload.ms_repo }}",
               "ms_pr_number": "${{ github.event.client_payload.ms_pr_number }}",
-              "preview_url": "https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html",
+              "preview_url": "https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html",
               "spec_pr_number": "${{ github.event.client_payload.spec_pr_number }}"
             }
 
@@ -118,7 +118,7 @@ jobs:
           issue-number: ${{ github.event.client_payload.spec_pr_number }}
           body: |
             🚀 **Preview Documentation**
-            https://inspiredtechinc.github.io/api-docs/generated/${{ github.event.client_payload.spec_branch }}/index.html
+            https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
       # 9: Cleanup on PR close
       - name: Cleanup preview on PR close
@@ -126,10 +126,12 @@ jobs:
           github.event_name == 'repository_dispatch' &&
           github.event.client_payload.event_type == 'closed'
         run: |
-          git clone --depth=1 --branch gh-pages https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git gh-pages-clean
-          cd gh-pages-clean
-          rm -rf public/generated/${{ github.event.client_payload.spec_branch }}
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git commit -am "Remove preview for ${{ github.event.client_payload.spec_branch }}"
-          git push origin gh-pages
+          echo "Cleaning up preview for ${{ github.event.client_payload.spec_branch }}"
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          publish_dir: /dev/null
+          destination_dir: generated/${{ github.event.client_payload.spec_branch }}
+          user_name: GitHub Actions
+          user_email: actions@github.com
+          keep_files: false
