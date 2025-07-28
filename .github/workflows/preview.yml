@@ -122,13 +122,17 @@ jobs:
             🚀 **Preview Documentation**
             https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
-      # 10: Cleanup on PR close
+      # 10: Cleanup on PR close      # 10: Cleanup on PR close
+      - name: Log cleanup message
+        if: >
+          github.event_name == 'repository_dispatch' &&
+          github.event.client_payload.event_type == 'closed'
+        run: echo "Cleaning up preview for ${{ github.event.client_payload.spec_branch }}"
+
       - name: Cleanup preview on PR close
         if: >
           github.event_name == 'repository_dispatch' &&
           github.event.client_payload.event_type == 'closed'
-        run: |
-          echo "Cleaning up preview for ${{ github.event.client_payload.spec_branch }}"
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
@@ -137,3 +141,4 @@ jobs:
           user_name: GitHub Actions
           user_email: actions@github.com
           keep_files: false
+
