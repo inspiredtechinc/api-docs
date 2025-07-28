@@ -10,6 +10,10 @@ concurrency:
 
 jobs:
   preview:
+    if: >
+      github.event_name == 'repository_dispatch' &&
+      contains(fromJson('["opened","synchronize","reopened","merged"]'),
+               github.event.client_payload.event_type)
     runs-on: ubuntu-latest
 
     steps:
@@ -25,17 +29,6 @@ jobs:
           echo "ms_pr_number:    ${{ github.event.client_payload.ms_pr_number }}"
           echo "ms_repo:         ${{ github.event.client_payload.ms_repo }}"
           echo "========================"
-
-      # 0.1: Early exit if not a PR event (opened/synchronize/reopened/merged)
-      - name: Early exit if not a PR event or closed cleanup
-        if: >
-          github.event_name == 'repository_dispatch' &&
-          !contains(fromJson('["opened","synchronize","reopened","merged","closed"]'),
-                    github.event.client_payload.event_type)
-        run: |
-          echo "Not a PR/merge/closed event (event_type=${{ github.event.client_payload.event_type }}); exiting."
-          exit 0
-
 
       # 1: Checkout the api-docs repo code
       - name: Checkout api-docs
@@ -82,6 +75,16 @@ jobs:
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
+      # 5.5: Merge old previews from gh-pages
+      - name: Merge existing previews from gh-pages
+        run: |
+          echo "Merging previously published previews..."
+          git clone --depth=1 --branch gh-pages \
+            https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git gh-pages-tmp
+          mkdir -p public/generated
+          cp -rv gh-pages-tmp/generated/* public/generated/ || true
+
+
       - name: Regenerate main index.html
         run: node scripts/generate-docs.js --index-only
 
@@ -110,20 +113,19 @@ jobs:
               "preview_url": "https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html",
               "spec_pr_number": "${{ github.event.client_payload.spec_pr_number }}"
             }
-
-      # # 8: Comment back on api-specs PR
-      # - name: Comment back on api-specs PR
-      #   if: >
-      #     github.event_name == 'repository_dispatch' &&
-      #     github.event.client_payload.spec_pr_number
-      #   uses: peter-evans/create-or-update-comment@v2
-      #   with:
-      #     token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-      #     repository: inspiredtechinc/api-specs
-      #     issue-number: ${{ github.event.client_payload.spec_pr_number }}
-      #     body: |
-      #       🚀 **Preview Documentation**
-      #       https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
+      # 8: Comment back on api-specs PR
+      - name: Comment back on api-specs PR
+        if: >
+          github.event_name == 'repository_dispatch' &&
+          github.event.client_payload.spec_pr_number
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          repository: inspiredtechinc/api-specs
+          issue-number: ${{ github.event.client_payload.spec_pr_number }}
+          body: |
+            🚀 **Preview Documentation**
+            https://inspiredtechinc.github.io/api-docs/${{ env.PUBLISH_DIR }}/index.html
 
       # 9: Cleanup on PR close
       - name: Log cleanup message
