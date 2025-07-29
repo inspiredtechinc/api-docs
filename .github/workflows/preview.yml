@@ -56,13 +56,18 @@ jobs:
       - name: Set ENV values
         run: |
           EVENT="${{ github.event.client_payload.event_type }}"
+          SERVICE="${{ github.event.client_payload.ms_repo }}" # e.g., inspiredtechinc/project-x-user-service
+          SERVICE_NAME=$(basename "$SERVICE")                  # e.g., project-x-user-service
+          PR_NUMBER="${{ github.event.client_payload.ms_pr_number }}"
+
           if [ "$EVENT" = "merged" ]; then
             echo "BUILD_ENV=staging" >> $GITHUB_ENV
-            echo "PUBLISH_DIR=generated/staging" >> $GITHUB_ENV
+            echo "PUBLISH_DIR=generated/staging/$SERVICE_NAME" >> $GITHUB_ENV
           else
             echo "BUILD_ENV=preview" >> $GITHUB_ENV
-            echo "PUBLISH_DIR=generated/${{ github.event.client_payload.spec_branch }}" >> $GITHUB_ENV
+            echo "PUBLISH_DIR=generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
           fi
+
 
       # 5: Generate the docs
       - name: Generate docs
@@ -88,12 +93,13 @@ jobs:
         if: github.event.client_payload.event_type != 'closed'
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token:  ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir:   public
-          publish_branch: gh-pages
-          user_name:     GitHub Actions
-          user_email:    actions@github.com
-          keep_files:    true   # preserve other previews
+          github_token:    ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          publish_dir:     public
+          publish_branch:  gh-pages
+          destination_dir: ${{ env.PUBLISH_DIR }}     # <— put previews/staging in the right folder
+          user_name:       GitHub Actions
+          user_email:      actions@github.com
+          keep_files:      true
 
       # 8: Tell api-specs to comment on the PRs
       - name: Ask api-specs to post preview comment
@@ -122,3 +128,11 @@ jobs:
           user_name:     GitHub Actions
           user_email:    actions@github.com
           keep_files:    false
+
+      # 10: Rebuild root index so the closed PR card disappears
+      - name: Regenerate root index.html
+        if: github.event.client_payload.event_type == 'closed'
+        run: |
+          node scripts/generate-docs.js --index-only
+        env:
+          # no BUILD_ENV needed; --index-only just rebuilds root
