@@ -117,22 +117,26 @@ jobs:
               "spec_pr_number":"${{ github.event.client_payload.spec_pr_number }}"
             }
 
-      # 9: Cleanup on PR close
+      # 9a: Log that we’re tearing down the preview
+      - name: Log cleanup message
+        if: github.event.client_payload.event_type == 'closed'
+        run: |
+          echo "Cleaning up preview for ${{ github.event.client_payload.spec_branch }}"
+
+      # 9b: Actually delete the preview directory
       - name: Cleanup preview on PR close
         if: github.event.client_payload.event_type == 'closed'
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token:  ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir:   /dev/null
-          destination_dir: generated/${{ github.event.client_payload.spec_branch }}
-          user_name:     GitHub Actions
-          user_email:    actions@github.com
-          keep_files:    false
+          github_token:     ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          publish_dir:      /dev/null
+          destination_dir:  generated/${{ github.event.client_payload.spec_branch }}
+          user_name:        GitHub Actions
+          user_email:       actions@github.com
+          keep_files:       false
 
-      # 10: Rebuild root index so the closed PR card disappears
+      # 10: Rebuild root index so the closed‑PR card disappears
       - name: Regenerate root index.html
         if: github.event.client_payload.event_type == 'closed'
         run: |
           node scripts/generate-docs.js --index-only
-        env:
-          # no BUILD_ENV needed; --index-only just rebuilds root
