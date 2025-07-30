@@ -101,7 +101,23 @@ jobs:
           user_email:      actions@github.com
           keep_files:      true
 
-      # 8: Tell api-specs to comment on the PRs
+        # 7.5: Trigger Staging Gateway Deployment
+      - name: Trigger Staging API Gateway Deployment
+        if: github.event.client_payload.event_type == 'merged'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token:       ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          repository:  inspiredtechinc/api-specs
+          event-type:  deploy-staging-gateway
+          client-payload: |
+            {
+              "source": "api-docs",
+              "branch": "${{ github.event.client_payload.spec_branch }}",
+              "sha":    "${{ github.sha }}"
+            }
+
+      
+          # 8: Tell api-specs to comment on the PRs
       - name: Ask api-specs to post preview comment
         uses: peter-evans/repository-dispatch@v2
         with:
