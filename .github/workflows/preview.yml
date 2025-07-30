@@ -61,8 +61,10 @@ jobs:
           PR_NUMBER="${{ github.event.client_payload.ms_pr_number }}"
 
           if [ "$EVENT" = "merged" ]; then
-            echo "BUILD_ENV=staging" >> $GITHUB_ENV
-            echo "PUBLISH_DIR=generated/staging/$SERVICE_NAME" >> $GITHUB_ENV
+            # echo "BUILD_ENV=staging" >> $GITHUB_ENV
+            # echo "PUBLISH_DIR=generated/staging/$SERVICE_NAME" >> $GITHUB_ENV
+             echo "BUILD_ENV=staging" >> $GITHUB_ENV
+             echo "PUBLISH_DIR=generated/staging" >> $GITHUB_ENV
           else
             echo "BUILD_ENV=preview" >> $GITHUB_ENV
             echo "PUBLISH_DIR=generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
@@ -88,7 +90,13 @@ jobs:
             https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git tmp
           cp -r tmp/generated public/ || true
 
-      # 7: Publish everything under public/ (including root index.html)
+     
+        # 6.5: Rebuild root index so the closed‑PR card disappears
+      - name: Regenerate root index.html
+        if: github.event.client_payload.event_type == 'closed'
+        run: |
+          node scripts/generate-docs.js --index-only
+        # 7: Publish everything under public/ (including root index.html)
       - name: Publish to GitHub Pages
         if: github.event.client_payload.event_type != 'closed'
         uses: peaceiris/actions-gh-pages@v3
@@ -151,8 +159,4 @@ jobs:
           user_email:       actions@github.com
           keep_files:       false
 
-      # 10: Rebuild root index so the closed‑PR card disappears
-      - name: Regenerate root index.html
-        if: github.event.client_payload.event_type == 'closed'
-        run: |
-          node scripts/generate-docs.js --index-only
+
