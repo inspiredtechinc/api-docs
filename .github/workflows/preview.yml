@@ -86,9 +86,9 @@ jobs:
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
-      - name: Regenerate main index.html
-        if: github.event.client_payload.event_type != 'closed'
-        run: node scripts/generate-docs.js --index-only
+      # - name: Regenerate main index.html
+      #   if: github.event.client_payload.event_type != 'closed'
+      #   run: node scripts/generate-docs.js --index-only
 
       # 5.5: Check disk space after generation
       - name: 💾 Check disk space after generation
