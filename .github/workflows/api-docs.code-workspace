@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../api-specs"
+		},
+		{
+			"path": "../../../project-x-user-service"
+		},
+		{
+			"path": "../../../project-x-listing-service"
+		}
+	],
+	"settings": {}
+}

@@ -27,6 +27,14 @@ jobs:
           echo "ms_pr_number:    ${{ github.event.client_payload.ms_pr_number }}"
           echo "ms_repo:         ${{ github.event.client_payload.ms_repo }}"
           echo "========================"
+          
+      # 0.5: Check available disk space
+      - name: 💾 Check disk space
+        run: |
+          echo "=== DISK SPACE BEFORE ==="
+          df -h
+          du -sh /home/runner || true
+          echo "========================="
 
       # 1: Checkout api-docs
       - name: Checkout api-docs
@@ -82,13 +90,48 @@ jobs:
         if: github.event.client_payload.event_type != 'closed'
         run: node scripts/generate-docs.js --index-only
 
+      # 5.5: Check disk space after generation
+      - name: 💾 Check disk space after generation
+        if: github.event.client_payload.event_type != 'closed'
+        run: |
+          echo "=== DISK SPACE AFTER GENERATION ==="
+          df -h
+          du -sh public/ || true
+          du -sh node_modules/ || true
+          echo "===================================="
+
       # 6: Merge any existing previews so we don't wipe other branches
       - name: Merge existing previews
         if: github.event.client_payload.event_type != 'closed'
         run: |
-          git clone --depth=1 --branch gh-pages \
+          echo "=== DISK SPACE BEFORE CLONE ==="
+          df -h
+          echo "==============================="
+          
+          # Use sparse checkout to only get the generated folder
+          git clone --depth=1 --branch gh-pages --filter=blob:none \
             https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git tmp
-          cp -r tmp/generated public/ || true
+          
+          cd tmp
+          git sparse-checkout init --cone
+          git sparse-checkout set generated
+          cd ..
+          
+          # Only copy if the generated folder exists
+          if [ -d "tmp/generated" ]; then
+            cp -r tmp/generated public/ || true
+            echo "Copied existing previews"
+          else
+            echo "No existing previews found"
+          fi
+          
+          # Clean up immediately
+          rm -rf tmp
+          
+          echo "=== DISK SPACE AFTER MERGE ==="
+          df -h
+          du -sh public/ || true
+          echo "==============================="
 
      
         # 6.5: Rebuild root index so the closed‑PR card disappears
@@ -97,6 +140,18 @@ jobs:
         run: |
           node scripts/generate-docs.js --index-only
         # 7: Publish everything under public/ (including root index.html)
+      - name: Clean up before publish
+        if: github.event.client_payload.event_type != 'closed'
+        run: |
+          # Remove any unnecessary files to save space
+          rm -rf api-specs-repo || true
+          rm -rf node_modules/.cache || true
+          
+          echo "=== FINAL DISK SPACE CHECK ==="
+          df -h
+          du -sh public/ || true
+          echo "==============================="
+          
       - name: Publish to GitHub Pages
         if: github.event.client_payload.event_type != 'closed'
         uses: peaceiris/actions-gh-pages@v3
