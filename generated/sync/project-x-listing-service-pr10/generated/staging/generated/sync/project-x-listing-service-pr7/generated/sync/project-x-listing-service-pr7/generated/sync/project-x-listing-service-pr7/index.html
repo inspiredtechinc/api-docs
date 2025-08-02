@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation - Card View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(120deg, #181c24 0%, #232b3a 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+    header {
+      background: #111827;
+      color: #f9fafb;
+      padding: 2rem 1rem 1rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(17,24,39,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.2em;
+    }
+    .content {
+      margin: 2rem auto;
+      max-width: 1000px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+    }
+    .card {
+      border: none;
+      border-radius: 18px;
+      padding: 2rem 1.5rem;
+      background: #232b3a;
+      box-shadow: 0 4px 24px rgba(17,24,39,0.18);
+      min-width: 260px;
+      max-width: 320px;
+      flex: 1 1 260px;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      cursor: pointer;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 8px 32px rgba(17,24,39,0.28);
+      background: #1f2533;
+    }
+    .card a {
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .card a:hover {
+      text-decoration: underline;
+      color: #93c5fd;
+    }
+    .badge {
+      display: inline-block;
+      margin-left: 0.5em;
+      padding: 0.2em 0.7em;
+      border-radius: 8px;
+      font-size: 0.85em;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .badge-prod { background: #10b981; color: #fff; }
+    .badge-staging { background: #f59e42; color: #fff; }
+    .badge-preview { background: #6366f1; color: #fff; }
+    .timestamp {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+      color: #a1a1aa;
+    }
+    footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin: 2rem 0 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">API Documentation</div>
+    <div style="font-size:1.1rem;opacity:0.85;">Browse environments and view your OpenAPI/Swagger docs</div>
+  </header>
+  <div class="content">
+    
+      <div class="card">
+        <a href="generated/preview/index.html">Preview: preview Environment</a>
+        <span class="badge badge-preview">PREVIEW</span>
+        <span class="timestamp" style="font-size:0.7em;color:#a1a1aa;">Build time: Aug 1, 2025, 9:05:54 AM UTC</span>
+      </div>
+    
+  </div>
+  <footer>
+    &copy; 2025 InspiredTech &mdash; All rights reserved.
+  </footer>
+</body>
+</html>
