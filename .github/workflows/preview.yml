@@ -109,12 +109,22 @@ jobs:
           fi
 
 
+
       # 8: Generate the docs
       - name: Generate docs
         if: github.event.client_payload.event_type != 'closed'
         run: npm run generate-docs
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
+
+      # 8.1: Debug - Show diff of generated docs
+      - name: Diff generated docs
+        if: github.event.client_payload.event_type != 'closed'
+        run: |
+          echo "--- DIFF of generated/ ---"
+          git status
+          git diff --stat || true
+          echo "--- END DIFF ---"
 
       - name: Regenerate main index.html
         if: github.event.client_payload.event_type != 'closed'
