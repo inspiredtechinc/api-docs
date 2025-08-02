@@ -108,8 +108,6 @@ jobs:
             echo "PUBLISH_DIR=generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
           fi
 
-
-
       # 8: Generate the docs
       - name: Generate docs
         if: github.event.client_payload.event_type != 'closed'
@@ -201,6 +199,26 @@ jobs:
           publish_dir:     public
           publish_branch:  gh-pages
           destination_dir: ${{ env.PUBLISH_DIR }}     # <— put previews/staging in the right folder
+          user_name:       GitHub Actions
+          user_email:      actions@github.com
+          keep_files:      true
+
+      # Publish only index.html and .nojekyll to the root of gh-pages
+      - name: Prepare root deploy files
+        if: github.event.client_payload.event_type != 'closed'
+        run: |
+          mkdir -p root-deploy
+          cp index.html root-deploy/ || true
+          cp .nojekyll root-deploy/ || true
+
+      - name: Publish root index.html and .nojekyll
+        if: github.event.client_payload.event_type != 'closed'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token:    ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          publish_dir:     root-deploy
+          publish_branch:  gh-pages
+          destination_dir: .
           user_name:       GitHub Actions
           user_email:      actions@github.com
           keep_files:      true
