@@ -116,9 +116,9 @@ jobs:
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
-      # - name: Regenerate main index.html
-      #   if: github.event.client_payload.event_type != 'closed'
-      #   run: node scripts/generate-docs.js --index-only
+      - name: Regenerate main index.html
+        if: github.event.client_payload.event_type != 'closed'
+        run: node scripts/generate-docs.js --index-only
 
       # 9: Check disk space after generation
       - name: 💾 Check disk space after generation
@@ -149,7 +149,8 @@ jobs:
           
           # Only copy if the generated folder exists
           if [ -d "tmp/generated" ]; then
-            cp -r tmp/generated public/ || true
+            mkdir -p public/generated
+            rsync -a tmp/generated/ public/generated/ || true
             echo "Copied existing previews"
           else
             echo "No existing previews found"
