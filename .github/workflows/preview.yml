@@ -17,6 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 0: Checkout api-docs (ensure correct workspace root)
+      - name: Checkout api-docs
+        uses: actions/checkout@v3
+
       # 1: Debug incoming dispatch payload
       - name: 🐛 Debug incoming dispatch payload
         run: |
