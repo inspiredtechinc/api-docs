@@ -51,6 +51,7 @@ jobs:
           path:        api-specs-repo
 
 
+
       # 4: Copy all service specs
       - name: Copy all service specs
         if: github.event.client_payload.event_type != 'closed'
@@ -58,6 +59,15 @@ jobs:
           mkdir -p specs/services
           cp api-specs-repo/services/*.yaml specs/services/ 2>/dev/null || true
           cp api-specs-repo/services/*.yml specs/services/ 2>/dev/null || true
+
+      # 4.1: Debug - List all copied service specs
+      - name: List all service specs
+        if: github.event.client_payload.event_type != 'closed'
+        run: |
+          echo "=== SERVICE SPECS ==="
+          ls -lh specs/services || true
+          echo "====================="
+
 
       # 5: Copy all gateway specs
       - name: Copy all gateway specs
@@ -67,6 +77,14 @@ jobs:
           cp api-specs-repo/gateway/*.yaml specs/gateways/ 2>/dev/null || true
           cp api-specs-repo/gateway/*.yml specs/gateways/ 2>/dev/null || true
           cp api-specs-repo/gateway/config.json specs/gateways/ 2>/dev/null || true
+
+      # 5.1: Debug - List all copied gateway specs
+      - name: List all gateway specs
+        if: github.event.client_payload.event_type != 'closed'
+        run: |
+          echo "=== GATEWAY SPECS ==="
+          ls -lh specs/gateways || true
+          echo "====================="
 
       # 6: Install dependencies
       - name: Install dependencies
@@ -94,7 +112,7 @@ jobs:
       # 8: Generate the docs
       - name: Generate docs
         if: github.event.client_payload.event_type != 'closed'
-        run: npm run generate:docs
+        run: npm run generate-docs
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
