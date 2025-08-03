@@ -99,13 +99,15 @@ jobs:
           PR_NUMBER="${{ github.event.client_payload.ms_pr_number }}"
 
           if [ "$EVENT" = "merged" ]; then
-            # echo "BUILD_ENV=staging" >> $GITHUB_ENV
-            # echo "PUBLISH_DIR=generated/staging/$SERVICE_NAME" >> $GITHUB_ENV
-             echo "BUILD_ENV=staging" >> $GITHUB_ENV
-             echo "PUBLISH_DIR=generated/staging" >> $GITHUB_ENV
+            echo "BUILD_ENV=staging" >> $GITHUB_ENV
+            echo "PUBLISH_DIR=generated/staging" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=public/generated/staging" >> $GITHUB_ENV
+            echo "DEST_DIR=staging" >> $GITHUB_ENV
           else
             echo "BUILD_ENV=preview" >> $GITHUB_ENV
             echo "PUBLISH_DIR=generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=public/generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
+            echo "DEST_DIR=sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
           fi
 
       # 8: Generate the docs
@@ -196,29 +198,9 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token:    ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir:     public
+          publish_dir:     ${{ env.DEPLOY_DIR }}
           publish_branch:  gh-pages
-          destination_dir: ${{ env.PUBLISH_DIR }}     # <— put previews/staging in the right folder
-          user_name:       GitHub Actions
-          user_email:      actions@github.com
-          keep_files:      true
-
-      # Publish only index.html and .nojekyll to the root of gh-pages
-      - name: Prepare root deploy files
-        if: github.event.client_payload.event_type != 'closed'
-        run: |
-          mkdir -p root-deploy
-          cp index.html root-deploy/ || true
-          cp .nojekyll root-deploy/ || true
-
-      - name: Publish root index.html and .nojekyll
-        if: github.event.client_payload.event_type != 'closed'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token:    ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir:     root-deploy
-          publish_branch:  gh-pages
-          destination_dir: .
+          destination_dir: ${{ env.DEST_DIR }}
           user_name:       GitHub Actions
           user_email:      actions@github.com
           keep_files:      true
