@@ -6,6 +6,10 @@
   "scripts": {
     "generate-docs": "BUILD_ENV=$BUILD_ENV node scripts/generate-docs.js",
     "docs": "BUILD_ENV=$BUILD_ENV node scripts/generate-docs.js",
+    "generate-docs:v2": "BUILD_ENV=$BUILD_ENV node scripts/generate-docs.v2.js",
+    "docs:v2": "BUILD_ENV=$BUILD_ENV node scripts/generate-docs.v2.js",
+    "test:v2": "npm run generate-docs:v2 && npm run preview",
+    "envs:v2": "BUILD_ENV=preview npm run generate-docs:v2 && BUILD_ENV=staging npm run generate-docs:v2 && BUILD_ENV=prod npm run generate-docs:v2",
     "preview": "npx http-server ./public -p 8080",
     "clean": "rm -rf public/generated && rm -rf public/index.html",
     "test": "npm run generate-docs && npm run preview",

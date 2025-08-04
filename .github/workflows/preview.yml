@@ -113,7 +113,7 @@ jobs:
       # 8: Generate the docs
       - name: Generate docs
         if: github.event.client_payload.event_type != 'closed'
-        run: npm run generate-docs
+        run: npm run generate-docs:v2
         env:
           BUILD_ENV: ${{ env.BUILD_ENV }}
 
@@ -128,7 +128,7 @@ jobs:
 
       - name: Regenerate main index.html
         if: github.event.client_payload.event_type != 'closed'
-        run: node scripts/generate-docs.js --index-only
+        run: node scripts/generate-docs.v2.js --index-only
 
       # 9: Check disk space after generation
       - name: 💾 Check disk space after generation
@@ -179,7 +179,7 @@ jobs:
       - name: Regenerate root index.html
         if: github.event.client_payload.event_type == 'closed'
         run: |
-          node scripts/generate-docs.js --index-only
+          node scripts/generate-docs.v2.js --index-only
       # 12: Clean up before publish
       - name: Clean up before publish
         if: github.event.client_payload.event_type != 'closed'
