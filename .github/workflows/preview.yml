@@ -104,7 +104,7 @@ jobs:
             echo "DEPLOY_DIR=public/generated/staging" >> $GITHUB_ENV
             echo "DEST_DIR=staging" >> $GITHUB_ENV
           else
-            echo "BUILD_ENV=preview" >> $GITHUB_ENV
+            echo "BUILD_ENV=sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
             echo "PUBLISH_DIR=generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
             echo "DEPLOY_DIR=public/generated/sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
             echo "DEST_DIR=sync/$SERVICE_NAME-pr$PR_NUMBER" >> $GITHUB_ENV
