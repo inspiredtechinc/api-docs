@@ -126,7 +126,10 @@ jobs:
           git diff --stat || true
           echo "--- END DIFF ---"
 
-      - name: Regenerate main index.html
+
+      # Only regenerate main index.html after PR close/deletion, since index.html is generated from the docs process
+      - name: Regenerate main index.html after PR close
+        if: github.event.client_payload.event_type == 'closed'
         run: node scripts/generate-docs.v2.js --index-only
 
       - name: List public dir before publish
@@ -180,12 +183,6 @@ jobs:
           du -sh public/ || true
           echo "==============================="
 
-     
-        # 11: Rebuild root index so the closed‑PR card disappears
-      - name: Regenerate root index.html
-        if: github.event.client_payload.event_type == 'closed'
-        run: |
-          node scripts/generate-docs.v2.js --index-only
       # 12: Clean up before publish
       - name: Clean up before publish
         if: github.event.client_payload.event_type != 'closed'

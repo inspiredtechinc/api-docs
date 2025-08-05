@@ -121,11 +121,28 @@ function main() {
         // Redoc
         const redocDir = path.join(envDir, 'redoc');
         ensureDir(redocDir);
-        generateRedocDocs(specPath, path.join(redocDir, `${baseName}.html`));
+        console.log(`[Redoc] Generating for ${baseName}...`);
+        try {
+          generateRedocDocs(specPath, path.join(redocDir, `${baseName}.html`));
+          console.log(`[Redoc] Done: ${baseName}`);
+        } catch (err) {
+          console.error(`[Redoc] Failed for ${baseName}:`, err);
+        }
         // Swagger
         const swaggerDir = path.join(envDir, 'swagger');
         ensureDir(swaggerDir);
-        generateSwaggerDocs(swaggerSpec, path.join(swaggerDir, `${baseName}.html`));
+        console.log(`[Swagger] Generating for ${baseName}...`);
+        try {
+          const swaggerOutPath = path.join(swaggerDir, `${baseName}.html`);
+          generateSwaggerDocs(swaggerSpec, swaggerOutPath);
+          console.log(`[Swagger] Done: ${baseName}`);
+          // Add celebratory log for Swagger
+          const stats = fs.statSync(swaggerOutPath);
+          const sizeKiB = Math.round(stats.size / 1024);
+          console.log(`🎉 bundled successfully in: ${swaggerOutPath} (${sizeKiB} KiB) (Swagger)`);
+        } catch (err) {
+          console.error(`[Swagger] Failed for ${baseName}:`, err);
+        }
         // Index entry
         const humanTimestamp = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'long' });
         const entry = `<li><span class=\"spec-name\">${baseName}</span> <span class=\"doc-links\"><a href=\"redoc/${baseName}.html\">Redoc</a> <span class=\"divider\">|</span> <a href=\"swagger/${baseName}.html\">Swagger</a></span> <span class=\"meta\" style=\"font-size:0.7em;\">Timestamp: ${humanTimestamp}</span></li>`;
