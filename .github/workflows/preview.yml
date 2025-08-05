@@ -127,8 +127,14 @@ jobs:
           echo "--- END DIFF ---"
 
       - name: Regenerate main index.html
-        if: github.event.client_payload.event_type != 'closed'
         run: node scripts/generate-docs.v2.js --index-only
+
+      - name: List public dir before publish
+        run: |
+          echo "=== public/ ==="
+          ls -lh public/
+          echo "=== public/generated/ ==="
+          ls -lh public/generated/ || true
 
       # 9: Check disk space after generation
       - name: 💾 Check disk space after generation
@@ -193,17 +199,20 @@ jobs:
           du -sh public/ || true
           echo "==============================="
           
-      - name: Publish to GitHub Pages
-        if: github.event.client_payload.event_type != 'closed'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token:    ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir:     ${{ env.DEPLOY_DIR }}
-          publish_branch:  gh-pages
-          destination_dir: ${{ env.DEST_DIR }}
-          user_name:       GitHub Actions
-          user_email:      actions@github.com
-          keep_files:      true
+
+      - name: Manual Deployment Instructions (Preview or Staging)
+        run: |
+          echo "\n=== Manual Deployment Required ==="
+          echo "1. Ensure your docs are generated in: ${{ env.DEPLOY_DIR }}"
+          echo "2. Checkout the gh-pages branch locally:"
+          echo "     git fetch origin gh-pages && git checkout gh-pages"
+          echo "3. Copy the generated docs to the correct destination:"
+          echo "     cp -r ${{ env.DEPLOY_DIR }}/* generated/${{ env.DEST_DIR }}/"
+          echo "4. Copy the root index.html:"
+          echo "     cp public/index.html ./index.html"
+          echo "5. Commit and push:"
+          echo "     git add . && git commit -m 'Manual docs update' && git push origin gh-pages"
+          echo "====================================\n"
 
       # 13: Publish to GitHub Pages
       - name: Trigger Staging API Gateway Deployment
