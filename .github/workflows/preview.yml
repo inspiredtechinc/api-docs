@@ -281,7 +281,7 @@ jobs:
         with:
           github_token:     ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           publish_dir:      /dev/null
-          destination_dir:  generated/${{ github.event.client_payload.spec_branch }}
+          destination_dir:  generated/${{ env.DEST_DIR }}
           user_name:        GitHub Actions
           user_email:       actions@github.com
           keep_files:       false
