@@ -9,14 +9,20 @@ jobs:
   cleanup-previews:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout api-docs
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v3
+        with:
+          ref: gh-pages
 
       - name: Clean up preview directories
         run: |
           # Remove all preview directories except staging
-          find public/generated/sync* -type d -exec rm -rf {} +
-          echo "Preview directories cleaned up."
+          if [ -d public/generated ]; then
+            find public/generated -maxdepth 1 -type d -name 'sync*' -exec rm -rf {} +
+            echo "Preview directories cleaned up."
+          else
+            echo "No preview directories to clean."
+          fi
 
       - name: Regenerate main index.html
         run: node scripts/generate-docs.v2.js --index-only
