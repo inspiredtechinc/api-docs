@@ -158,8 +158,8 @@ jobs:
 
 
       # Only regenerate main index.html after PR close/deletion, since index.html is generated from the docs process
-      - name: Regenerate main index.html after PR close
-        if: github.event.client_payload.event_type == 'closed'
+      - name: Regenerate main index.html after PR close or merge
+        if: github.event.client_payload.event_type == 'closed' || github.event.client_payload.event_type == 'merged'
         run: node scripts/generate-docs.v2.js --index-only
 
 
@@ -299,14 +299,14 @@ jobs:
 
       # 15: Tell api-specs to post preview comment
       - name: Log cleanup message
-        if: github.event.client_payload.event_type == 'closed'
+        if: github.event.client_payload.event_type == 'closed' || github.event.client_payload.event_type == 'merged'
         run: |
           echo "Cleaning up preview for ${{ github.event.client_payload.spec_branch }}"
 
       # 16: Log that we’re tearing down the preview
       # 17: Actually delete the preview directory
-      - name: Cleanup preview on PR close
-        if: github.event.client_payload.event_type == 'closed'
+      - name: Cleanup preview on PR close or merge
+        if: github.event.client_payload.event_type == 'closed' || github.event.client_payload.event_type == 'merged'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token:     ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
