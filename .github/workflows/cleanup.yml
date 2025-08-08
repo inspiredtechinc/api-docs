@@ -1,0 +1,32 @@
+name: Scheduled Preview Cleanup
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # Runs at 4am UTC every day
+  workflow_dispatch:
+
+jobs:
+  cleanup-previews:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout api-docs
+        uses: actions/checkout@v3
+
+      - name: Clean up preview directories
+        run: |
+          # Remove all preview directories except staging
+          find public/generated/sync* -type d -exec rm -rf {} +
+          echo "Preview directories cleaned up."
+
+      - name: Regenerate main index.html
+        run: node scripts/generate-docs.v2.js --index-only
+
+      - name: Publish cleanup to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          publish_dir: public
+          destination_dir: .
+          user_name: GitHub Actions
+          user_email: actions@github.com
+          keep_files: true
