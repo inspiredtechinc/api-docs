@@ -9,16 +9,22 @@ jobs:
   cleanup-previews:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages branch
+      - name: Checkout main branch (for scripts)
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Checkout gh-pages branch (site content)
         uses: actions/checkout@v3
         with:
           ref: gh-pages
+          path: site
 
       - name: Clean up preview directories
         run: |
-          # Remove all preview directories except staging
-          if [ -d public/generated ]; then
-            find public/generated -maxdepth 1 -type d -name 'sync*' -exec rm -rf {} +
+          # Remove all preview directories except staging in site/
+          if [ -d site/public/generated ]; then
+            find site/public/generated -maxdepth 1 -type d -name 'sync*' -exec rm -rf {} +
             echo "Preview directories cleaned up."
           else
             echo "No preview directories to clean."
@@ -26,12 +32,14 @@ jobs:
 
       - name: Regenerate main index.html
         run: node scripts/generate-docs.v2.js --index-only
+        env:
+          DOCS_PUBLIC_DIR: site/public
 
       - name: Publish cleanup to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir: public
+          publish_dir: site/public
           destination_dir: .
           user_name: GitHub Actions
           user_email: actions@github.com
