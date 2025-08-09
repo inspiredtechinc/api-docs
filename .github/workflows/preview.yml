@@ -5,7 +5,7 @@ on:
     types: [spec-sync]
 
 concurrency:
-  group: docs-preview-${{ github.event.client_payload.spec_branch }}
+  group: docs-preview
   cancel-in-progress: false
 
 jobs:
