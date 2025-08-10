@@ -6,7 +6,7 @@ on:
 
 concurrency:
   group: docs-preview
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   preview:
@@ -203,40 +203,6 @@ jobs:
           du -sh node_modules/ || true
           echo "===================================="
 
-      # 10: Merge any existing previews so we don't wipe other branches
-      - name: Merge existing previews
-        if: github.event.client_payload.event_type != 'closed'
-        run: |
-          echo "=== DISK SPACE BEFORE CLONE ==="
-          df -h
-          echo "==============================="
-          
-          # Use sparse checkout to only get the generated folder
-          git clone --depth=1 --branch gh-pages --filter=blob:none \
-            https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git tmp
-          
-          cd tmp
-          git sparse-checkout init --cone
-          git sparse-checkout set generated
-          cd ..
-          
-          # Only copy if the generated folder exists
-          if [ -d "tmp/generated" ]; then
-            mkdir -p public/generated
-            rsync -a tmp/generated/ public/generated/ || true
-            echo "Copied existing previews"
-          else
-            echo "No existing previews found"
-          fi
-          
-          # Clean up immediately
-          rm -rf tmp
-          
-          echo "=== DISK SPACE AFTER MERGE ==="
-          df -h
-          du -sh public/ || true
-          echo "==============================="
-
       # 12: Clean up before publish
       - name: Clean up before publish
         if: github.event.client_payload.event_type != 'closed'
@@ -299,19 +265,41 @@ jobs:
 
       # 15: Tell api-specs to post preview comment
       - name: Log cleanup message
-        if: github.event.client_payload.event_type == 'closed' || github.event.client_payload.event_type == 'merged'
+        if: github.event.client_payload.event_type == 'closed'
         run: |
           echo "Cleaning up preview for ${{ github.event.client_payload.spec_branch }}"
 
       # 16: Log that we’re tearing down the preview
       # 17: Actually delete the preview directory
-      - name: Cleanup preview on PR close or merge
-        if: github.event.client_payload.event_type == 'closed' || github.event.client_payload.event_type == 'merged'
+      - name: Cleanup preview on PR close
+        if: github.event.client_payload.event_type == 'closed' 
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token:     ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
           publish_dir:      /dev/null
           destination_dir:  generated/${{ env.DEST_DIR }}
+          user_name:        GitHub Actions
+          user_email:       actions@github.com
+          keep_files:       false
+
+      # 18: Cleanup PR preview directory when merged (different from staging)
+      - name: Cleanup merged PR preview directory
+        if: github.event.client_payload.event_type == 'merged'
+        run: |
+          SERVICE="${{ github.event.client_payload.ms_repo }}"
+          SERVICE_NAME=$(basename "$SERVICE")
+          PR_NUMBER="${{ github.event.client_payload.ms_pr_number }}"
+          PR_DEST_DIR="sync/${SERVICE_NAME}-pr${PR_NUMBER}"
+          echo "Will clean up merged PR preview: generated/${PR_DEST_DIR}"
+          echo "PR_CLEANUP_DIR=$PR_DEST_DIR" >> $GITHUB_ENV
+        
+      - name: Deploy cleanup for merged PR preview
+        if: github.event.client_payload.event_type == 'merged'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token:     ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
+          publish_dir:      /dev/null
+          destination_dir:  generated/${{ env.PR_CLEANUP_DIR }}
           user_name:        GitHub Actions
           user_email:       actions@github.com
           keep_files:       false
