@@ -14,21 +14,46 @@ jobs:
         with:
           ref: main
 
-      - name: Checkout gh-pages branch (site content)
-        uses: actions/checkout@v3
-        with:
-          ref: gh-pages
-          path: site
-
+      # Merge existing previews (same as preview workflow)
+      - name: Merge existing previews
+        run: |
+          # Use sparse checkout to only get the generated folder
+          git clone --depth=1 --branch gh-pages --filter=blob:none \
+            https://x-access-token:${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}@github.com/inspiredtechinc/api-docs.git tmp
+          cd tmp
+          git sparse-checkout init --cone
+          git sparse-checkout set generated
+          cd ..
+          # Only copy if the generated folder exists
+          if [ -d "tmp/generated" ]; then
+            mkdir -p public/generated
+            rsync -a tmp/generated/ public/generated/ || true
+            echo "Copied existing previews"
+          else
+            echo "No existing previews found"
+            exit 0
+          fi
+          # Clean up immediately
+          rm -rf tmp
 
       - name: Install dependencies
         run: npm ci
 
       - name: Clean up preview directories
         run: |
-          # Remove all preview directories except staging in site/
-          if [ -d site/public/generated ]; then
-            find site/public/generated -maxdepth 1 -type d -name 'sync*' -exec rm -rf {} +
+          # Remove all PR preview directories in public/generated/sync/
+          if [ -d public/generated/sync ]; then
+            echo "=== BEFORE CLEANUP ==="
+            ls -la public/generated/sync/ || true
+            echo "======================"
+            
+            # Remove PR directories
+            find public/generated/sync -maxdepth 1 -type d -name 'pr-*' -exec rm -rf {} +
+            find public/generated/sync -maxdepth 1 -type d -name '*-pr*' -exec rm -rf {} +
+            
+            echo "=== AFTER CLEANUP ==="
+            ls -la public/generated/sync/ || true
+            echo "====================="
             echo "Preview directories cleaned up."
           else
             echo "No preview directories to clean."
@@ -37,13 +62,13 @@ jobs:
       - name: Regenerate main index.html
         run: node scripts/generate-docs.v2.js --index-only
         env:
-          DOCS_PUBLIC_DIR: site/public
+          DOCS_PUBLIC_DIR: public
 
       - name: Publish cleanup to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.OPENAPI_CICD_WORKFLOW_TOKEN }}
-          publish_dir: site/public
+          publish_dir: public
           destination_dir: .
           user_name: GitHub Actions
           user_email: actions@github.com
