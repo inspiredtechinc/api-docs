@@ -72,4 +72,4 @@ jobs:
           destination_dir: .
           user_name: GitHub Actions
           user_email: actions@github.com
-          keep_files: true
+          keep_files: false
